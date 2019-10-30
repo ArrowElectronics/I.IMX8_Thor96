@@ -1,0 +1,184 @@
+(---------------------------------------------------------------------)
+(                                                                     )
+(    NC DRILL Log                                                     )
+(                                                                     )
+(    Drawing          : EI_ARROW_IMX8M_HMI_PLATFORM_17_00666_02.brd   )
+(    Software Version : 17.2P019                                      )
+(    Date/Time        : Mon Feb 11 12:29:51 2019                      )
+(                                                                     )
+(---------------------------------------------------------------------)
+
+
+
+ Processing NC Parameters file 'nc_param.txt' ...
+
+ NC PARAMETERS
+ -------------
+
+ FORMAT   		2.5
+ MACHINE-OFFSET		x:0.00000	y:0.00000   (inch)
+ FEEDRATE		1
+ COORDINATES		ABSOLUTE
+ OUTPUT-UNITS		ENGLISH
+ TOOL-ORDER		INCREASING
+ REPEAT-CODES		NO
+ SUPPRESS-LEAD-ZEROES	NO
+ SUPPRESS-TRAIL-ZEROES	NO
+ SUPPRESS-EQUAL		NO
+ TOOL-SELECT		YES
+ HEADER			none
+ LEADER			12
+ CODE			ASCII
+ SEPARATE		NO
+ SEPARATE-ROUTING	NO
+ OPTIMIZE_DRILLING	NO
+ ENHANCED_EXCELLON	NO
+ SCALE			1.000000
+
+ WARNING(SPMHMF-358): Design precision is the same as that of the drill output file data.
+ WARNING(SPMHMF-359): Data rounding errors may still be possible.
+ WARNING(SPMHMF-365): This design contains 9 slot holes that can NOT be drilled.
+ WARNING(SPMHMF-366): They can be processed by NC routing instead.
+ WARNING(SPMHMF-368): Cannot find NC Drill tool file 'nc_tools.txt'
+ WARNING(SPMHMF-369): ... will auto-generate tool file 'nc_tools_auto.txt'.
+
+
+     Auto-generating tool file 'nc_tools_auto.txt' ...
+
+           Size  Plating  Tool        + Tolerance  - Tolerance
+
+           6.00  P        T01            0.000000     0.000000
+           8.00  P        T02            2.000000     2.000000
+          27.56  P        T03            3.000000     3.000000
+          28.00  P        T04            3.000000     3.000000
+          35.00  P        T05            3.000000     3.000000
+          36.00  P        T06            3.000000     3.000000
+          40.00  P        T07            3.000000     3.000000
+          47.00  P        T08            3.000000     3.000000
+          51.00  P        T09            3.000000     3.000000
+          63.00  P        T10            3.000000     3.000000
+          91.00  P        T11            3.000000     3.000000
+         100.00  P        T12            3.000000     3.000000
+          32.00  N        T13            3.000000     3.000000
+          34.00  N        T14            3.000000     3.000000
+          44.00  N        T15            3.000000     3.000000
+          48.00  N        T16            3.000000     3.000000
+          51.00  N        T17            3.000000     3.000000
+         130.00  N        T18            3.000000     3.000000
+
+
+ Drill files being output to directory 'C:/Users/parth.rathod/Desktop/New folder/allegro/Output' ...
+
+
+
+     'EI_ARROW_IMX8M_HMI_PLATFORM_17_00666_02-10-12.drl' created for holes connecting L10_SIG4 and BOTTOM
+     ----------------------------------------------------------------------------------------------------
+
+     Tool  Num     Size      +/- Tolerance     Plating   Quantity
+
+     T01    1.   6.0000    0.0000/  0.0000      PLATED        370
+
+     ---- Total holes:                                        370
+
+     ---- Total head travel:              9.84 feet (3.00 meters)
+
+
+
+
+     'EI_ARROW_IMX8M_HMI_PLATFORM_17_00666_02-11-12.drl' created for holes connecting L11_GND4 and BOTTOM
+     ----------------------------------------------------------------------------------------------------
+
+     Tool  Num     Size      +/- Tolerance     Plating   Quantity
+
+     T01    1.   6.0000    0.0000/  0.0000      PLATED        944
+
+     ---- Total holes:                                        944
+
+     ---- Total head travel:              16.81 feet (5.12 meters)
+
+
+
+
+     'EI_ARROW_IMX8M_HMI_PLATFORM_17_00666_02-2-3.drl' created for holes connecting L2_GND1 and L3_SIG1
+     --------------------------------------------------------------------------------------------------
+
+     Tool  Num     Size      +/- Tolerance     Plating   Quantity
+
+     T01    1.   6.0000    0.0000/  0.0000      PLATED          5
+
+     ---- Total holes:                                          5
+
+     ---- Total head travel:              0.09 feet (0.03 meters)
+
+
+
+
+     'EI_ARROW_IMX8M_HMI_PLATFORM_17_00666_02-3-10.drl' created for holes connecting L3_SIG1 and L10_SIG4
+     ----------------------------------------------------------------------------------------------------
+
+     Tool  Num     Size      +/- Tolerance     Plating   Quantity
+
+     T02    1.   8.0000    2.0000/  2.0000      PLATED        388
+
+     ---- Total holes:                                        388
+
+     ---- Total head travel:              11.72 feet (3.57 meters)
+
+
+
+
+     'EI_ARROW_IMX8M_HMI_PLATFORM_17_00666_02-1-12.drl' created for holes connecting TOP and BOTTOM
+     ----------------------------------------------------------------------------------------------
+
+     Tool  Num     Size      +/- Tolerance     Plating   Quantity
+
+     T02    1.   8.0000    2.0000/  2.0000      PLATED       1600
+     T03    2.  27.5600    3.0000/  3.0000      PLATED          3
+     T04    3.  28.0000    3.0000/  3.0000      PLATED         38
+     T05    4.  35.0000    3.0000/  3.0000      PLATED         10
+     T06    5.  36.0000    3.0000/  3.0000      PLATED          2
+     T07    6.  40.0000    3.0000/  3.0000      PLATED          3
+     T08    7.  47.0000    3.0000/  3.0000      PLATED          4
+     T09    8.  51.0000    3.0000/  3.0000      PLATED          8
+     T10    9.  63.0000    3.0000/  3.0000      PLATED          2
+     T11   10.  91.0000    3.0000/  3.0000      PLATED          4
+     T12   11. 100.0000    3.0000/  3.0000      PLATED          6
+     T13   12.  32.0000    3.0000/  3.0000  NON_PLATED          1
+     T14   13.  34.0000    3.0000/  3.0000  NON_PLATED          2
+     T15   14.  44.0000    3.0000/  3.0000  NON_PLATED          2
+     T16   15.  48.0000    3.0000/  3.0000  NON_PLATED          1
+     T17   16.  51.0000    3.0000/  3.0000  NON_PLATED          2
+     T18   17. 130.0000    3.0000/  3.0000  NON_PLATED          2
+
+     ---- Total holes:                                       1690
+
+     ---- Total head travel:              35.65 feet (10.87 meters)
+
+
+
+
+     'EI_ARROW_IMX8M_HMI_PLATFORM_17_00666_02-1-2.drl' created for holes connecting TOP and L2_GND1
+     ----------------------------------------------------------------------------------------------
+
+     Tool  Num     Size      +/- Tolerance     Plating   Quantity
+
+     T01    1.   6.0000    0.0000/  0.0000      PLATED        697
+
+     ---- Total holes:                                        697
+
+     ---- Total head travel:              12.10 feet (3.69 meters)
+
+
+
+
+     'EI_ARROW_IMX8M_HMI_PLATFORM_17_00666_02-1-3.drl' created for holes connecting TOP and L3_SIG1
+     ----------------------------------------------------------------------------------------------
+
+     Tool  Num     Size      +/- Tolerance     Plating   Quantity
+
+     T01    1.   6.0000    0.0000/  0.0000      PLATED        280
+
+     ---- Total holes:                                        280
+
+     ---- Total head travel:              7.34 feet (2.24 meters)
+
