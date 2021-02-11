@@ -1,0 +1,37 @@
+From af6766751a43524261bea8131a2ce0596bdc5204 Mon Sep 17 00:00:00 2001
+From: "darshak.patel" <darshak.patel@einfochips.com>
+Date: Sun, 20 Dec 2020 14:47:31 +0530
+Subject: [PATCH 2/3] IMX8: Remove kernel-pcitest package
+
+---
+ .../packagegroup/packagegroup-fsl-tools-testapps.bbappend        | 1 -
+ meta-sdk/recipes-fsl/packagegroup/packagegroup-imx-core-tools.bb | 1 -
+ 2 files changed, 2 deletions(-)
+
+diff --git a/meta-sdk/recipes-fsl/packagegroup/packagegroup-fsl-tools-testapps.bbappend b/meta-sdk/recipes-fsl/packagegroup/packagegroup-fsl-tools-testapps.bbappend
+index c9554a89a..9570863c1 100644
+--- a/meta-sdk/recipes-fsl/packagegroup/packagegroup-fsl-tools-testapps.bbappend
++++ b/meta-sdk/recipes-fsl/packagegroup/packagegroup-fsl-tools-testapps.bbappend
+@@ -35,7 +35,6 @@ RDEPENDS_${PN} += " \
+     e2fsprogs-resize2fs \
+     iw \
+     linuxptp \
+-    kernel-pcitest \
+     minicom \
+     mmc-utils \
+     nano \
+diff --git a/meta-sdk/recipes-fsl/packagegroup/packagegroup-imx-core-tools.bb b/meta-sdk/recipes-fsl/packagegroup/packagegroup-imx-core-tools.bb
+index 9352f9b5c..44fee04c3 100644
+--- a/meta-sdk/recipes-fsl/packagegroup/packagegroup-imx-core-tools.bb
++++ b/meta-sdk/recipes-fsl/packagegroup/packagegroup-imx-core-tools.bb
+@@ -15,7 +15,6 @@ RDEPENDS_${PN} = " \
+     fbset \
+     i2c-tools \
+     iproute2 \
+-    kernel-pcitest \
+     memtester \
+     python-subprocess \
+     python-datetime \
+-- 
+2.17.1
+

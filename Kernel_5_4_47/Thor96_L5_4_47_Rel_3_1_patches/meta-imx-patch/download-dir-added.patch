@@ -1,0 +1,12 @@
+diff --git a/tools/imx-setup-release.sh b/tools/imx-setup-release.sh
+index 8549d2900..0e5103458 100755
+--- a/tools/imx-setup-release.sh
++++ b/tools/imx-setup-release.sh
+@@ -189,6 +189,7 @@ echo "BBLAYERS += \"\${BSPDIR}/sources/meta-einfochips\"" >> $BUILD_DIR/conf/bbl
+ echo "BBLAYERS += \"\${BSPDIR}/sources/meta-qt5\"" >> $BUILD_DIR/conf/bblayers.conf
+ echo "BBLAYERS += \"\${BSPDIR}/sources/meta-python2\"" >> $BUILD_DIR/conf/bblayers.conf
+ 
++echo "DL_DIR = \"/home/admin/NXP/downloads\"" >> conf/local.conf
+ if [ -d ../sources/meta-ivi ]; then
+     echo -e "\n## Genivi layers" >> $BUILD_DIR/conf/bblayers.conf
+     echo "BBLAYERS += \"\${BSPDIR}/sources/meta-gplv2\"" >> $BUILD_DIR/conf/bblayers.conf

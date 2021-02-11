@@ -1,0 +1,44 @@
+From f690ef0ea2eb0d437bdb44594e888a171339c129 Mon Sep 17 00:00:00 2001
+From: "darshak.patel" <darshak.patel@einfochips.com>
+Date: Sun, 20 Dec 2020 15:01:41 +0530
+Subject: [PATCH] IMX8: Change recipe file of pyqt5
+
+---
+ ...15.1.dev2007111314.bb => python3-pyqt5_5.15.1.bb} | 12 +++++++-----
+ 1 file changed, 7 insertions(+), 5 deletions(-)
+ rename recipes-python/pyqt5/{python3-pyqt5_5.15.1.dev2007111314.bb => python3-pyqt5_5.15.1.bb} (89%)
+
+diff --git a/recipes-python/pyqt5/python3-pyqt5_5.15.1.dev2007111314.bb b/recipes-python/pyqt5/python3-pyqt5_5.15.1.bb
+similarity index 89%
+rename from recipes-python/pyqt5/python3-pyqt5_5.15.1.dev2007111314.bb
+rename to recipes-python/pyqt5/python3-pyqt5_5.15.1.bb
+index ef14e20..9d8fd39 100644
+--- a/recipes-python/pyqt5/python3-pyqt5_5.15.1.dev2007111314.bb
++++ b/recipes-python/pyqt5/python3-pyqt5_5.15.1.bb
+@@ -1,16 +1,18 @@
+ SUMMARY = "Python Qt5 Bindings"
+ AUTHOR = "Phil Thomson @ riverbank.co.uk"
+-HOMEPAGE = "http://riverbankcomputing.co.uk"
++HOMEPAGE = "https://www.riverbankcomputing.com/software/pyqt"
+ SECTION = "devel/python"
+ LICENSE = "GPLv3"
+ LIC_FILES_CHKSUM = "\
+     file://LICENSE;md5=d32239bcb673463ab874e80d47fae504 \
+ "
+ 
+-SRC_URI = "\
+-    https://www.riverbankcomputing.com/static/Downloads/PyQt5/PyQt5-${PV}.tar.gz \
+-"
+-SRC_URI[sha256sum] = "d0bbefff23a29c64d8fd9378389f54462029425a6765619843a2b6fc44cb167e"
++inherit pypi
++
++PYPI_PACKAGE = "PyQt5"
++
++SRC_URI[md5sum] = "b60f895e70d31d774e6cd374efd17c65"
++SRC_URI[sha256sum] = "d9a76b850246d08da9863189ecb98f6c2aa9b4d97a3e85e29330a264aed0f9a1"
+ 
+ S = "${WORKDIR}/PyQt5-${PV}"
+ 
+-- 
+2.17.1
+

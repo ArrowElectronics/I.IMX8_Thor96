@@ -1,0 +1,24 @@
+From 3219724018a4c9deeec1276c0653b4061775d3dd Mon Sep 17 00:00:00 2001
+From: "darshak.patel" <darshak.patel@einfochips.com>
+Date: Mon, 21 Dec 2020 11:22:41 +0530
+Subject: [PATCH] IMX8: Add mesa in rdepend
+
+---
+ recipes-browser/chromium/chromium-ozone-wayland_83.0.4103.116.bb | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/recipes-browser/chromium/chromium-ozone-wayland_83.0.4103.116.bb b/recipes-browser/chromium/chromium-ozone-wayland_83.0.4103.116.bb
+index de9274d..29dced5 100644
+--- a/recipes-browser/chromium/chromium-ozone-wayland_83.0.4103.116.bb
++++ b/recipes-browser/chromium/chromium-ozone-wayland_83.0.4103.116.bb
+@@ -7,6 +7,7 @@ DEPENDS += "\
+         virtual/egl \
+         wayland \
+         wayland-native \
++	mesa \
+ "
+ 
+ GN_ARGS += "\
+-- 
+2.17.1
+
