@@ -59,15 +59,10 @@ create_repo()
 	# create ~/bin if not there
 	mkdir -p ~/bin
 
-	# check for repo dir and create one if not there
-	if [[ -f ~/bin/repo ]]; then
-		echo "Repo is already created. No need to do anything."
-	else
-		echo "###################################################################################"
-		echo "Creating repo..."
-		echo "###################################################################################"
-		curl https://storage.googleapis.com/git-repo-downloads/repo  > ~/bin/repo
-	fi
+	echo "###################################################################################"
+	echo "Creating repo..."
+	echo "###################################################################################"
+	curl https://storage.googleapis.com/git-repo-downloads/repo  > ~/bin/repo
 
 	sudo chmod a+x ~/bin/repo
 	export PATH=~/bin:$PATH

@@ -16,6 +16,11 @@ $ git lfs install
 - Install repo command
 $ sudo apt-get install repo
 
+$ mkdir -p ~/bin
+$ curl https://storage.googleapis.com/git-repo-downloads/repo  > ~/bin/repo
+$ sudo chmod a+x ~/bin/repo
+$ export PATH=~/bin:$PATH
+
 - git setup
 $ git config --global user.name "Your Name"
 $ git config --global user.email "Your Email"
