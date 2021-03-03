@@ -1,0 +1,25 @@
+From aa30c0d969bd31d389bfca0a2dade7150a24dbfb Mon Sep 17 00:00:00 2001
+From: Darshak Patel <darshak.patel@einfochips.com>
+Date: Wed, 3 Mar 2021 15:13:30 +0530
+Subject: [PATCH] IMX8:Updated opencv_4.2.0.imx.bb to commit f70f223
+
+---
+ meta-bsp/recipes-support/opencv/opencv_4.2.0.imx.bb | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/meta-bsp/recipes-support/opencv/opencv_4.2.0.imx.bb b/meta-bsp/recipes-support/opencv/opencv_4.2.0.imx.bb
+index 33b676c3a..25d7e6f8a 100644
+--- a/meta-bsp/recipes-support/opencv/opencv_4.2.0.imx.bb
++++ b/meta-bsp/recipes-support/opencv/opencv_4.2.0.imx.bb
+@@ -4,7 +4,7 @@ FILESEXTRAPATHS_prepend := "${BSPDIR}/sources/meta-openembedded/meta-oe/recipes-
+ 
+ LIC_FILES_CHKSUM = "file://LICENSE;md5=014935351b2df6f3094bf25de8d50ed8"
+ 
+-SRCREV_opencv = "7187501b6bc89e111f4dd5694b58151ca98b7d9a"
++SRCREV_opencv = "f70f223ea33a62e8d8a03f8a0de33f6b7b2f2bb3"
+ SRCREV_contrib = "65abc7090dedc84bbedec4dfd143f0340e52114f"
+ SRCREV_extra = "322b475403899abc2411c4fbf68318afa77d3191"
+ SRC_URI[tinydnn.md5sum] = "adb1c512e09ca2c7a6faef36f9c53e59"
+-- 
+2.17.1
+
