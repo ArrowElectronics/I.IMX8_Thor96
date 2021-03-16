@@ -1,0 +1,25 @@
+From e937320e3ae914bfc09361e11d8e5307003e0623 Mon Sep 17 00:00:00 2001
+From: Your Name <you@example.com>
+Date: Tue, 16 Mar 2021 05:40:14 +0100
+Subject: [PATCH] rm_work added to local.conf
+
+---
+ tools/imx-setup-release.sh | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/tools/imx-setup-release.sh b/tools/imx-setup-release.sh
+index 8549d2900..cd57edcc4 100755
+--- a/tools/imx-setup-release.sh
++++ b/tools/imx-setup-release.sh
+@@ -158,6 +158,8 @@ echo >> conf/local.conf
+ echo "# Switch to Debian packaging and include package-management in the image" >> conf/local.conf
+ echo "PACKAGE_CLASSES = \"package_deb\"" >> conf/local.conf
+ echo "EXTRA_IMAGE_FEATURES += \"package-management\"" >> conf/local.conf
++echo "INHERIT += \"rm_work\"" >> conf/local.conf
++echo "RM_WORK_EXCLUDE += \"linux-imx u-boot-imx\"" >> conf/local.conf
+ 
+ if [ ! -e $BUILD_DIR/conf/bblayers.conf.org ]; then
+     cp $BUILD_DIR/conf/bblayers.conf $BUILD_DIR/conf/bblayers.conf.org
+-- 
+2.17.1
+

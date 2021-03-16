@@ -27,18 +27,6 @@ meta_browser_head=ee3be3b5986a4aa0e73df2204a625ae1fe5df37e
 # Install all the required build HOST packages
 prerequisite()
 {
-	echo "###################################################################################"
-	echo "Checking for required host packages and if not installed then install it..."
-	echo "###################################################################################"
-
-	sudo apt-get install repo gcc g++ gawk wget git-core diffstat unzip texinfo gcc-multilib build-essential chrpath socat cpio python python3 libsdl1.2-dev xterm sed cvs subversion coreutils texi2html docbook-utils python3-pip python3-pexpect python3-jinja2 python3-git python-pip python-pysqlite2 xz-utils debianutils iputils-ping help2man make desktop-file-utils libgl1-mesa-dev libglu1-mesa-dev mercurial autoconf automake groff curl lzop asciidoc u-boot-tools libegl1-mesa pylint3 -y
-
-	if [ $? -ne 0 ]
-	then
-		echo "[ERROR] : Failed to get required HOST packages. Please correct error and try again."
-		exit -1
-	fi
-
 	git lfs > /dev/null
 	if [ $? -ne 0 ]
 	then
@@ -137,7 +125,7 @@ apply_patch()
 	if [ ! -d meta-einfochips ]
 	then
 		#git clone https://github.com/Darsh-Dev/meta-einfochips.git -b thor96
-		git clone https://github.com/ArrowElectronics/meta-einfochips.git -b thor96
+		git clone https://github.com/ArrowElectronics/meta-einfochips.git -b thor96_fix_nxp-wlan-sdk
 		if [ $? -ne 0 ]
 		then
 			echo "###################################################################################"
@@ -289,10 +277,6 @@ then
 else
 	# Check prerequisite
 	prerequisite
-
-	# create repo
-	create_repo
-	sync
 
 	# Setup Yocto environment
 	download_imx_repo
