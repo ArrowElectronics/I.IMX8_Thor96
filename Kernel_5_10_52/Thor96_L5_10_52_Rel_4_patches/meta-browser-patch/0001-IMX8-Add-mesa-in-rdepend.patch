@@ -1,0 +1,25 @@
+From 245790da88cb4f96f8b521fd4389f34083a1e8a6 Mon Sep 17 00:00:00 2001
+From: Tejas Patel <tejas.patel1@einfochips.com>
+Date: Tue, 16 Nov 2021 12:47:19 +0530
+Subject: [PATCH] IMX8: Add mesa in rdepend
+
+Signed-off-by: Tejas Patel <tejas.patel1@einfochips.com>
+---
+ .../chromium/chromium-ozone-wayland_91.0.4472.114.bb             | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/meta-chromium/recipes-browser/chromium/chromium-ozone-wayland_91.0.4472.114.bb b/meta-chromium/recipes-browser/chromium/chromium-ozone-wayland_91.0.4472.114.bb
+index 3968f89..6c2c791 100644
+--- a/meta-chromium/recipes-browser/chromium/chromium-ozone-wayland_91.0.4472.114.bb
++++ b/meta-chromium/recipes-browser/chromium/chromium-ozone-wayland_91.0.4472.114.bb
+@@ -8,6 +8,7 @@ DEPENDS += "\
+         virtual/egl \
+         wayland \
+         wayland-native \
++	mesa \
+ "
+ 
+ SRC_URI += "\
+-- 
+2.17.1
+

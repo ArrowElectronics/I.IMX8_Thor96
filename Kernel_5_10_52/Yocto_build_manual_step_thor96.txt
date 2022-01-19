@@ -1,0 +1,84 @@
+############## Prerequisite ##################
+- It is recommended that at least 250 GB Disk space is provided, which is
+enough to compile all backends together.
+
+-Install Essential Yocto Project host packages
+
+$ sudo apt-get install gcc g++ gawk wget git-core diffstat unzip texinfo gcc-multilib build-essential chrpath socat cpio python python3 libsdl1.2-dev xterm sed cvs subversion coreutils texi2html docbook-utils python3-pip python3-pexpect python3-jinja2 python3-git python-pip python-pysqlite2 xz-utils debianutils iputils-ping help2man make desktop-file-utils libgl1-mesa-dev libglu1-mesa-dev mercurial autoconf automake groff curl lzop asciidoc u-boot-tools libegl1-mesa pylint3 -y
+
+$ curl -s https://packagecloud.io/install/repositories/github/git-lfs/script.deb.sh | sudo bash
+$ sudo apt-get install git-lfs -y
+$ git lfs install
+
+###############################################
+
+######## Repo setup for 5.10 hardknott ##############
+- Install repo command
+$ sudo apt-get install repo
+
+$ mkdir -p ~/bin
+$ curl https://storage.googleapis.com/git-repo-downloads/repo  > ~/bin/repo
+$ sudo chmod a+x ~/bin/repo
+$ export PATH=~/bin:$PATH
+
+- git setup
+$ git config --global user.name "Your Name"
+$ git config --global user.email "Your Email"
+$ git config --list
+
+- Clone the repo for imx 5.10.52
+
+$ mkdir imx-yocto-bsp
+$ cd imx-yocto-bsp
+$ repo init -u https://source.codeaurora.org/external/imx/imx-manifest -b imx-linux-hardknott -m imx-5.10.52-2.1.0.xml
+$ repo sync
+
+- apply patches
+$ cd imx-yocto-bsp/sources/
+
+$ git clone https://github.com/ArrowElectronics/meta-einfochips.git -b thor96-linux-5.10
+$ wget https://github.com/ArrowElectronics/meta-einfochips/releases/download/v4.0-imx/ML-data-models_v4.zip
+$ unzip ML-data-models_v4.zip > /dev/null
+$ cp -r $SOURCE_DIR/ML-data-models/*.whl $SOURCE_DIR/meta-einfochips/recipes-extended/ml-sdk/files/
+$ cp -r $SOURCE_DIR/ML-data-models/armnn $SOURCE_DIR/meta-einfochips/recipes-extended/ml-sdk/files/
+$ cp -r $SOURCE_DIR/ML-data-models/recipes-qt5/examples/videohmiapp/ $SOURCE_DIR/meta-einfochips/recipes-qt5/examples/
+$ cp -r $SOURCE_DIR/ML-data-models/ARROW_DEMOS/ai-crowd_count/demo/* $SOURCE_DIR/meta-einfochips/recipes-extended/ml-sdk/files/ARROW_DEMOS/ai-crowd_count/demo/
+$ cp -r $SOURCE_DIR/ML-data-models/ARROW_DEMOS/crowd-counting-using-tensorflow/* $SOURCE_DIR/meta-einfochips/recipes-extended/ml-sdk/files/ARROW_DEMOS/crowd-counting-using-tensorflow/
+$ cp -r $SOURCE_DIR/ML-data-models/ARROW_DEMOS/face_recognition/* $SOURCE_DIR/meta-einfochips/recipes-extended/ml-sdk/files/ARROW_DEMOS/face_recognition/
+$ cp -r $SOURCE_DIR/ML-data-models/ARROW_DEMOS/real-time-object-detection/* $SOURCE_DIR/meta-einfochips/recipes-extended/ml-sdk/files/ARROW_DEMOS/real-time-object-detection/
+$ cp -r $SOURCE_DIR/ML-data-models/ARROW_DEMOS/TFLite-armnn/handwritten_char_rec_demo/* $SOURCE_DIR/meta-einfochips/recipes-extended/ml-sdk/files/ARROW_DEMOS/TFLite-armnn/handwritten_char_rec_demo/
+
+$ cp -r ../../Thor96_L5_10_52_Rel_4_patches/meta-quectel-community/ .
+
+$ cd meta-imx/
+
+$ git am ../../../Thor96_L5_10_52_Rel_4_patches/meta-imx-patch/000*
+
+$ cd ../meta-openembedded
+
+$ git am ../../../Thor96_L5_10_52_Rel_4_patches/meta-openembedded-patch/000*
+
+$ cd ../meta-browser
+
+$ git am ../../../Thor96_L5_10_52_Rel_4_patches/meta-browser-patch/000*
+$ cd ../../
+
+################### Start build the firmware image ############################
+- Setup yocto environment
+$ EULA=1 DISTRO=fsl-imx-xwayland MACHINE=imx8mqthor96 source imx-setup-release.sh -b build-xwayland-thor96
+
+- Build firmware image it will take ~10 hours to download all packages and build, time may vary base on your HOST PC configurations
+$ bitbake -v imx-image-full
+
+- After complete execution of the above command it generate firmawre image(imx-image-full-imx8mqthor96.wic.bz2) at below location
+fw path: imx-yocto-bsp/build-xwayland-thor96/tmp/deploy/images/imx8mtho96/
+
+################### Flash firmware image #####################################
+- Extract firmware image imx-image-full-imx8mqthor96.wic.bz2 using below command
+$ bunzip2 -dk -f <image>.wic.bz2
+
+- Insert SD card into host PC and formate first
+- Check the device node i.e /dev/sda
+
+- Insert image name and device node as per your SD card create and flash image into SD card using below command
+$ sudo dd if=<Image>.wic of=/dev/sdX bs=1M conv=fsync status=progress; sync;
