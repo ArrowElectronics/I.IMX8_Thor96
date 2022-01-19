@@ -1,0 +1,22 @@
+From 08e823bb35359565acf8267a52fd1abe2db961ce Mon Sep 17 00:00:00 2001
+From: Deepak Rathore <deepak.rathore@einfochips.com>
+Date: Tue, 16 Nov 2021 14:19:59 +0530
+Subject: [PATCH 2/3] IMX8: Remove kernel-pcitest package
+
+Signed-off-by: Deepak Rathore <deepak.rathore@einfochips.com>
+
+diff --git a/meta-sdk/recipes-fsl/packagegroup/packagegroup-fsl-tools-testapps.bbappend b/meta-sdk/recipes-fsl/packagegroup/packagegroup-fsl-tools-testapps.bbappend
+index 4bc021ce7..cf0e5ab39 100644
+--- a/meta-sdk/recipes-fsl/packagegroup/packagegroup-fsl-tools-testapps.bbappend
++++ b/meta-sdk/recipes-fsl/packagegroup/packagegroup-fsl-tools-testapps.bbappend
+@@ -31,7 +31,6 @@ RDEPENDS_${PN} += " \
+     e2fsprogs-resize2fs \
+     iw \
+     linuxptp \
+-    kernel-tools-pci \
+     minicom \
+     mmc-utils \
+     nano \
+-- 
+2.17.1
+

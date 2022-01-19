@@ -1,0 +1,24 @@
+From 8e4228d94a41667705bf88ccfe213afcafa45bbf Mon Sep 17 00:00:00 2001
+From: Deepak Rathore <deepak.rathore@einfochips.com>
+Date: Tue, 18 Jan 2022 22:05:05 +0530
+Subject: [PATCH 2/2] meta-networking:recipes-support:dnsmasq: Resolved DNS
+ server issue
+
+Signed-off-by: Deepak Rathore <deepak.rathore@einfochips.com>
+
+diff --git a/meta-networking/recipes-support/dnsmasq/files/dnsmasq.conf b/meta-networking/recipes-support/dnsmasq/files/dnsmasq.conf
+index 2897b9030..3246cca13 100755
+--- a/meta-networking/recipes-support/dnsmasq/files/dnsmasq.conf
++++ b/meta-networking/recipes-support/dnsmasq/files/dnsmasq.conf
+@@ -37,7 +37,7 @@ bogus-priv
+ 
+ # Change this line if you want dns to get its upstream servers from
+ # somewhere other that /etc/resolv.conf 
+-#resolv-file=
++resolv-file="/run/systemd/resolve/resolv.conf"
+ 
+ # By  default,  dnsmasq  will  send queries to any of the upstream
+ # servers it knows about and tries to favour servers to are  known
+-- 
+2.17.1
+
