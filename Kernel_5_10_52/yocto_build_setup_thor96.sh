@@ -180,7 +180,7 @@ apply_patch()
 	fi
 
 	cd $SOURCE_DIR/meta-openembedded
-	git apply --check -R $YOCTO_DIR/Thor96_L5_10_52_Rel_4_patches/meta-openembedded-patch/00*
+	git apply --check -R $YOCTO_DIR/Thor96_L5_10_52_Rel_4_patches/meta-openembedded-patch/00* 2>/dev/null
 	if [ $? -ne 0 ]
 	then
 		echo "###################################################################################"
