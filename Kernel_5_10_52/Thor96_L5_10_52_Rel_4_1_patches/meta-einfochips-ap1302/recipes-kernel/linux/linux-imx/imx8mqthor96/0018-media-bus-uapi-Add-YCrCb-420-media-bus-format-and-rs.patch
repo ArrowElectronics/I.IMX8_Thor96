@@ -1,0 +1,31 @@
+From 3d73659dee059d7b1f86133ad8fcda4c9c72c210 Mon Sep 17 00:00:00 2001
+From: Satish Kumar Nagireddy <satish.nagireddy.nagireddy@xilinx.com>
+Date: Tue, 16 Nov 2021 17:56:07 +0530
+Subject: [PATCH 02/13] media-bus: uapi: Add YCrCb 420 media bus format and rst
+
+This commit adds YUV 420 media bus format. VYYUYY8_1X24
+is an approximate way to descrive the pixels sent over
+the bus.
+
+Change-Id: I814845455961bd3e24be3e51168bbadc66166c58
+Signed-off-by: Satish Kumar Nagireddy <satish.nagireddy.nagireddy@xilinx.com>
+Signed-off-by: Tanvi Chauhan <tanvi.chauhan@einfochips.com>
+---
+ include/uapi/linux/media-bus-format.h | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/include/uapi/linux/media-bus-format.h b/include/uapi/linux/media-bus-format.h
+index fa8ea6584..2387fa5c5 100644
+--- a/include/uapi/linux/media-bus-format.h
++++ b/include/uapi/linux/media-bus-format.h
+@@ -115,6 +115,7 @@
+ #define MEDIA_BUS_FMT_YUV12_1X36		0x2029
+ #define MEDIA_BUS_FMT_YUV16_1X48		0x202a
+ #define MEDIA_BUS_FMT_UYYVYY16_0_5X48		0x202b
++#define MEDIA_BUS_FMT_VYYUYY8_1X24		0x202c
+ 
+ /* Bayer - next is	0x3021 */
+ #define MEDIA_BUS_FMT_SBGGR8_1X8		0x3001
+-- 
+2.17.1
+

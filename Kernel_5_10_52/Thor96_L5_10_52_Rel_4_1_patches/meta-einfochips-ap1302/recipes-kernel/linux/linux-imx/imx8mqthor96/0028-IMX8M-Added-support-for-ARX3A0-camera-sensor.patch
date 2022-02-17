@@ -1,0 +1,67 @@
+From fd19d03531a329ca91e8828bef3ed9973d9a03fd Mon Sep 17 00:00:00 2001
+From: Deepak Rathore <deepak.rathore@einfochips.com>
+Date: Wed, 9 Feb 2022 14:37:41 +0530
+Subject: [PATCH 13/13] IMX8M: Added v4l2 control support in Thor96
+
+- Added changes to support for v4l2 controls in thor96
+
+Change-Id: Id0d7dd8b1e9ab187be083cd36d93d1eb1ec6381f
+Signed-off-by: Deepak Rathore <deepak.rathore@einfochips.com>
+Signed-off-by: Tanvi Chauhan <tanvi.chauhan@einfochips.com>
+---
+ drivers/media/platform/imx8/mxc-mipi-csi2_yav.c  | 16 ++++++++++++++++
+ .../media/platform/mxc/capture/mx6s_capture.c    |  9 +++++++++
+ 2 files changed, 25 insertions(+)
+
+diff --git a/drivers/media/platform/imx8/mxc-mipi-csi2_yav.c b/drivers/media/platform/imx8/mxc-mipi-csi2_yav.c
+index 090a0c465..a526dd30a 100644
+--- a/drivers/media/platform/imx8/mxc-mipi-csi2_yav.c
++++ b/drivers/media/platform/imx8/mxc-mipi-csi2_yav.c
+@@ -493,8 +493,24 @@ static int subdev_notifier_bound(struct v4l2_async_notifier *notifier,
+ 	return 0;
+ }
+ 
++static int subdev_notifier_complete(struct v4l2_async_notifier *notifier)
++{
++	struct mxc_mipi_csi2_dev *csi2dev = notifier_to_mipi_dev(notifier);
++	struct v4l2_subdev *sensor_sd = csi2dev->sensor_sd;
++
++	/* Assigning sensor subdevice control handler to subdevice
++	 * control handler to access to mx6s driver to exposure v4l2
++	 * control to user */
++	csi2dev->sd.ctrl_handler = sensor_sd->ctrl_handler;
++
++	v4l2_info(&csi2dev->v4l2_dev, "Assigning v4l2 controls comlete");
++
++	return 0;
++}
++
+ static const struct v4l2_async_notifier_operations subdev_notifier_ops = {
+ 	.bound = subdev_notifier_bound,
++	.complete = subdev_notifier_complete,
+ };
+ 
+ static int mipi_csis_subdev_host(struct mxc_mipi_csi2_dev *csi2dev)
+diff --git a/drivers/media/platform/mxc/capture/mx6s_capture.c b/drivers/media/platform/mxc/capture/mx6s_capture.c
+index 433f2d124..165e8b083 100644
+--- a/drivers/media/platform/mxc/capture/mx6s_capture.c
++++ b/drivers/media/platform/mxc/capture/mx6s_capture.c
+@@ -1184,6 +1184,15 @@ static int mx6s_csi_open(struct file *file)
+ 	if (mutex_lock_interruptible(&csi_dev->lock))
+ 		return -ERESTARTSYS;
+ 
++	/* Assiging subdevice control handler to video device
++	 * control handler to access v4l2 control from v4l2
++	 * framework */
++	csi_dev->vdev->ctrl_handler = sd->ctrl_handler;
++
++	ret = v4l2_fh_open(file);
++	if (ret < 0)
++		goto unlock;
++
+ 	if (csi_dev->open_count++ == 0) {
+ 		q->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+ 		q->io_modes = VB2_MMAP | VB2_USERPTR;
+-- 
+2.17.1
+
