@@ -18,4 +18,5 @@ SRC_URI_append_imx8mqthor96 += "file://0017-media-uapi-Add-an-entity-type-for-Im
 					file://0027-IMX8M-Added-support-for-ARX3A0-camera-sensor.patch \
 					file://0028-IMX8M-Added-support-for-ARX3A0-camera-sensor.patch \
 					file://0029-IMX8M-Changed-ARX3A0-resolution-to-720p-120fps.patch \
+					file://0030-IMX8M-Set-v4l2-ISP-controls-default-value-from-AP130.patch \
 				"
