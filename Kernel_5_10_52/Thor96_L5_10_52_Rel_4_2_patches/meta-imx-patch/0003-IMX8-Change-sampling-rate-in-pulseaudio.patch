@@ -1,0 +1,85 @@
+From bee225ae2244ed78bae0e845b33094cf68c0d769 Mon Sep 17 00:00:00 2001
+From: Deepak Rathore <deepak.rathore@einfochips.com>
+Date: Tue, 16 Nov 2021 14:20:59 +0530
+Subject: [PATCH 3/3] IMX8: Change sampling rate in pulseaudio
+
+Signed-off-by: Deepak Rathore <deepak.rathore@einfochips.com>
+
+diff --git a/meta-bsp/recipes-multimedia/pulseaudio/pulseaudio/0001-IMX8X_AIML-Added-patch-to-change-default-sampling-ra.patch b/meta-bsp/recipes-multimedia/pulseaudio/pulseaudio/0001-IMX8X_AIML-Added-patch-to-change-default-sampling-ra.patch
+new file mode 100644
+index 000000000..7cc87576b
+--- /dev/null
++++ b/meta-bsp/recipes-multimedia/pulseaudio/pulseaudio/0001-IMX8X_AIML-Added-patch-to-change-default-sampling-ra.patch
+@@ -0,0 +1,57 @@
++From d60d9a692738f0872babc4961d613344344d2ab8 Mon Sep 17 00:00:00 2001
++From: Sandeep Yenugula <sandeep.yenugula@einfochips.com>
++Date: Fri, 5 Apr 2019 19:26:18 +0530
++Subject: [PATCH] IMX8X_AIML: Added patch to change default sampling rate
++
++Signed-off-by: Sandeep Yenugula <sandeep.yenugula@einfochips.com>
++---
++ src/daemon/daemon-conf.c  | 4 ++--
++ src/daemon/daemon.conf.in | 4 ++--
++ src/pulsecore/core.c      | 2 +-
++ 3 files changed, 5 insertions(+), 5 deletions(-)
++
++diff --git a/src/daemon/daemon-conf.c b/src/daemon/daemon-conf.c
++index f01eff4..7edda80 100644
++--- a/src/daemon/daemon-conf.c
+++++ b/src/daemon/daemon-conf.c
++@@ -101,8 +101,8 @@ static const pa_daemon_conf default_conf = {
++     .default_fragment_size_msec = 25,
++     .deferred_volume_safety_margin_usec = 8000,
++     .deferred_volume_extra_delay_usec = 0,
++-    .default_sample_spec = { .format = PA_SAMPLE_S16NE, .rate = 44100, .channels = 2 },
++-    .alternate_sample_rate = 48000,
+++    .default_sample_spec = { .format = PA_SAMPLE_S16NE, .rate = 48000, .channels = 2 },
+++    .alternate_sample_rate = 44100,
++     .default_channel_map = { .channels = 2, .map = { PA_CHANNEL_POSITION_LEFT, PA_CHANNEL_POSITION_RIGHT } },
++     .shm_size = 0
++ #ifdef HAVE_SYS_RESOURCE_H
++diff --git a/src/daemon/daemon.conf.in b/src/daemon/daemon.conf.in
++index a955523..40a90a0 100644
++--- a/src/daemon/daemon.conf.in
+++++ b/src/daemon/daemon.conf.in
++@@ -81,8 +81,8 @@ ifelse(@HAVE_SYS_RESOURCE_H@, 1, [dnl
++ ])dnl
++
++ ; default-sample-format = s16le
++-; default-sample-rate = 44100
++-; alternate-sample-rate = 48000
+++; default-sample-rate = 48000
+++; alternate-sample-rate = 44100
++ ; default-sample-channels = 2
++ ; default-channel-map = front-left,front-right
++
++diff --git a/src/pulsecore/core.c b/src/pulsecore/core.c
++index 79abbc0..2dd3f62 100644
++--- a/src/pulsecore/core.c
+++++ b/src/pulsecore/core.c
++@@ -108,7 +108,7 @@ pa_core* pa_core_new(pa_mainloop_api *m, bool shared, bool enable_memfd, size_t
++     c->default_sink = NULL;
++
++     c->default_sample_spec.format = PA_SAMPLE_S16NE;
++-    c->default_sample_spec.rate = 44100;
+++    c->default_sample_spec.rate = 48000;
++     c->default_sample_spec.channels = 2;
++     pa_channel_map_init_extend(&c->default_channel_map, c->default_sample_spec.channels, PA_CHANNEL_MAP_DEFAULT);
++     c->default_n_fragments = 4;
++--
++2.7.4
+diff --git a/meta-bsp/recipes-multimedia/pulseaudio/pulseaudio_14.2.bbappend b/meta-bsp/recipes-multimedia/pulseaudio/pulseaudio_14.2.bbappend
+index 676b2b546..a8c9d648b 100644
+--- a/meta-bsp/recipes-multimedia/pulseaudio/pulseaudio_14.2.bbappend
++++ b/meta-bsp/recipes-multimedia/pulseaudio/pulseaudio_14.2.bbappend
+@@ -2,6 +2,7 @@ FILESEXTRAPATHS_prepend := "${THISDIR}/${PN}:"
+ 
+ IMX_PATCHES = " file://0001-Fix-pulseaudio-mutex-issue-when-do-pause-in-gstreame.patch \
+                 file://0002-Revert-bluetooth-Fix-crash-when-disabling-Bluetooth-.patch \
++                file://0001-IMX8X_AIML-Added-patch-to-change-default-sampling-ra.patch \
+ "
+ SRC_URI_append_mx6 = "${IMX_PATCHES}"
+ SRC_URI_append_mx7 = "${IMX_PATCHES}"
+-- 
+2.17.1
+

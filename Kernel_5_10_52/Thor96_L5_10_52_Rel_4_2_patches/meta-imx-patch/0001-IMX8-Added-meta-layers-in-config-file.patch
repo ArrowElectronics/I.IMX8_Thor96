@@ -1,0 +1,24 @@
+From d73e832e99f66c5af20645a2cc05fc98b6ed601c Mon Sep 17 00:00:00 2001
+From: Deepak Rathore <deepak.rathore@einfochips.com>
+Date: Tue, 16 Nov 2021 14:16:55 +0530
+Subject: [PATCH 1/3] IMX8 : Added meta layers in config file
+
+Signed-off-by: Deepak Rathore <deepak.rathore@einfochips.com>
+
+diff --git a/tools/imx-setup-release.sh b/tools/imx-setup-release.sh
+index e4ac96786..812c99c60 100755
+--- a/tools/imx-setup-release.sh
++++ b/tools/imx-setup-release.sh
+@@ -182,6 +182,9 @@ echo "BBLAYERS += \"\${BSPDIR}/sources/meta-clang\"" >> $BUILD_DIR/conf/bblayers
+ echo "BBLAYERS += \"\${BSPDIR}/sources/meta-openembedded/meta-gnome\"" >> $BUILD_DIR/conf/bblayers.conf
+ echo "BBLAYERS += \"\${BSPDIR}/sources/meta-openembedded/meta-networking\"" >> $BUILD_DIR/conf/bblayers.conf
+ echo "BBLAYERS += \"\${BSPDIR}/sources/meta-openembedded/meta-filesystems\"" >> $BUILD_DIR/conf/bblayers.conf
++echo "BBLAYERS += \"\${BSPDIR}/sources/meta-openembedded/meta-webserver\"" >> $BUILD_DIR/conf/bblayers.conf
++echo "BBLAYERS += \"\${BSPDIR}/sources/meta-quectel-community\"" >> $BUILD_DIR/conf/bblayers.conf
++echo "BBLAYERS += \"\${BSPDIR}/sources/meta-einfochips\"" >> $BUILD_DIR/conf/bblayers.conf
+ 
+ echo "BBLAYERS += \"\${BSPDIR}/sources/meta-qt5\"" >> $BUILD_DIR/conf/bblayers.conf
+ echo "BBLAYERS += \"\${BSPDIR}/sources/meta-python2\"" >> $BUILD_DIR/conf/bblayers.conf
+-- 
+2.17.1
+

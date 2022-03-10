@@ -1,0 +1,57 @@
+From e8cd2b4d624d5e259a0d242023f048f47053be78 Mon Sep 17 00:00:00 2001
+From: Deepak Rathore <deepak.rathore@einfochips.com>
+Date: Mon, 31 Jan 2022 15:37:08 +0530
+Subject: [PATCH 11/13] IMX8M: AP1302 compilation changes added
+
+- AP1302 DTS compilation changes added
+- Added reserved memory node in DTS to increase CMA pool size
+
+Change-Id: I12105fb6151bf3c4fba178aa407fc036406a82c1
+Signed-off-by: Deepak Rathore <deepak.rathore@einfochips.com>
+Signed-off-by: Tanvi Chauhan <tanvi.chauhan@einfochips.com>
+---
+ arch/arm64/boot/dts/freescale/Makefile          |  2 +-
+ arch/arm64/boot/dts/freescale/imx8mq-thor96.dts | 14 ++++++++++++++
+ 2 files changed, 15 insertions(+), 1 deletion(-)
+
+diff --git a/arch/arm64/boot/dts/freescale/Makefile b/arch/arm64/boot/dts/freescale/Makefile
+index cabf63cb9..e095475b2 100644
+--- a/arch/arm64/boot/dts/freescale/Makefile
++++ b/arch/arm64/boot/dts/freescale/Makefile
+@@ -123,7 +123,7 @@ dtb-$(CONFIG_ARCH_MXC) += imx8mq-nitrogen.dtb
+ dtb-$(CONFIG_ARCH_MXC) += imx8mq-phanbell.dtb
+ dtb-$(CONFIG_ARCH_MXC) += imx8mq-pico-pi.dtb
+ dtb-$(CONFIG_ARCH_MXC) += imx8mq-thor96.dtb imx8mq-thor96-dual-display.dtb imx8mq-thor96-dcss-rm67191.dtb \
+-			  imx8mq-thor96-lcdif-adv7535.dtb
++			  imx8mq-thor96-lcdif-adv7535.dtb imx8mq-thor96-ap1302.dtb
+ dtb-$(CONFIG_ARCH_MXC) += imx8mq-evk-dp.dtb
+ dtb-$(CONFIG_ARCH_MXC) += imx8mq-zii-ultra-rmb3.dtb
+ dtb-$(CONFIG_ARCH_MXC) += imx8mq-zii-ultra-zest.dtb
+diff --git a/arch/arm64/boot/dts/freescale/imx8mq-thor96.dts b/arch/arm64/boot/dts/freescale/imx8mq-thor96.dts
+index 6415c8ff6..a32062a22 100644
+--- a/arch/arm64/boot/dts/freescale/imx8mq-thor96.dts
++++ b/arch/arm64/boot/dts/freescale/imx8mq-thor96.dts
+@@ -30,6 +30,20 @@
+ 		reg = <0x00000000 0x40000000 0 0x80000000>;
+ 	};
+ 
++	resmem: reserved-memory {
++		#address-cells = <2>;
++		#size-cells = <2>;
++		ranges;
++		/* global autoconfigured region for contiguous allocations */
++		linux,cma {
++			compatible = "shared-dma-pool";
++			reusable;
++			size = <0 0x38000000>;
++			alloc-ranges = <0 0x80000000 0 0x38000000>;
++			linux,cma-default;
++		};
++	};
++
+ 	leds {
+ 		compatible = "gpio-leds";
+ 		pinctrl-names = "default";
+-- 
+2.17.1
+

@@ -1,0 +1,378 @@
+From 04e014205c6750776370b5daa67398c20feb37f2 Mon Sep 17 00:00:00 2001
+From: Deepak Rathore <deepak.rathore@einfochips.com>
+Date: Wed, 9 Feb 2022 14:33:36 +0530
+Subject: [PATCH 12/13] IMX8M: Added support for ARX3A0 camera sensor
+
+- ARX3A0 sensor support is added in ap1302 driver
+- Added two different DTS for AR0430 and ARX3A0 so end user
+  can select DTB based on camera sensor
+- Removed unused camera controls
+
+Change-Id: I79f21defafa281185ec3fbb6118a1fad6370d96e
+Signed-off-by: Deepak Rathore <deepak.rathore@einfochips.com>
+Signed-off-by: Tanvi Chauhan <tanvi.chauhan@einfochips.com>
+---
+ arch/arm64/boot/dts/freescale/Makefile        |   2 +-
+ ...02.dts => imx8mq-thor96-ap1302-ar0430.dts} |   0
+ .../freescale/imx8mq-thor96-ap1302-arx3a0.dts |  67 ++++++++
+ drivers/media/i2c/ap1302.c                    | 154 ++----------------
+ 4 files changed, 81 insertions(+), 142 deletions(-)
+ rename arch/arm64/boot/dts/freescale/{imx8mq-thor96-ap1302.dts => imx8mq-thor96-ap1302-ar0430.dts} (100%)
+ create mode 100644 arch/arm64/boot/dts/freescale/imx8mq-thor96-ap1302-arx3a0.dts
+
+diff --git a/arch/arm64/boot/dts/freescale/Makefile b/arch/arm64/boot/dts/freescale/Makefile
+index e095475b2..a272662a1 100644
+--- a/arch/arm64/boot/dts/freescale/Makefile
++++ b/arch/arm64/boot/dts/freescale/Makefile
+@@ -123,7 +123,7 @@ dtb-$(CONFIG_ARCH_MXC) += imx8mq-nitrogen.dtb
+ dtb-$(CONFIG_ARCH_MXC) += imx8mq-phanbell.dtb
+ dtb-$(CONFIG_ARCH_MXC) += imx8mq-pico-pi.dtb
+ dtb-$(CONFIG_ARCH_MXC) += imx8mq-thor96.dtb imx8mq-thor96-dual-display.dtb imx8mq-thor96-dcss-rm67191.dtb \
+-			  imx8mq-thor96-lcdif-adv7535.dtb imx8mq-thor96-ap1302.dtb
++			  imx8mq-thor96-lcdif-adv7535.dtb imx8mq-thor96-ap1302-ar0430.dtb imx8mq-thor96-ap1302-arx3a0.dtb
+ dtb-$(CONFIG_ARCH_MXC) += imx8mq-evk-dp.dtb
+ dtb-$(CONFIG_ARCH_MXC) += imx8mq-zii-ultra-rmb3.dtb
+ dtb-$(CONFIG_ARCH_MXC) += imx8mq-zii-ultra-zest.dtb
+diff --git a/arch/arm64/boot/dts/freescale/imx8mq-thor96-ap1302.dts b/arch/arm64/boot/dts/freescale/imx8mq-thor96-ap1302-ar0430.dts
+similarity index 100%
+rename from arch/arm64/boot/dts/freescale/imx8mq-thor96-ap1302.dts
+rename to arch/arm64/boot/dts/freescale/imx8mq-thor96-ap1302-ar0430.dts
+diff --git a/arch/arm64/boot/dts/freescale/imx8mq-thor96-ap1302-arx3a0.dts b/arch/arm64/boot/dts/freescale/imx8mq-thor96-ap1302-arx3a0.dts
+new file mode 100644
+index 000000000..da4af9a9c
+--- /dev/null
++++ b/arch/arm64/boot/dts/freescale/imx8mq-thor96-ap1302-arx3a0.dts
+@@ -0,0 +1,67 @@
++// SPDX-License-Identifier: GPL-2.0
++/*
++ * Copyright 2019 NXP.
++ */
++
++#include "imx8mq-thor96.dts"
++
++&ov5640_mipi2 {
++	status = "disabled";
++};
++
++&ov5640_mipi {
++	status = "disabled";
++};
++
++&i2c3 {
++	ap1302_mipi: ap1302@3d {
++		compatible = "onnn,ap1302";
++		reg = <0x3d>;
++
++		pinctrl-0 = <&pinctrl_csi>;
++		clocks = <&clk IMX8MQ_CLK_CLKO2>;
++		clock-names = "xclk";
++		assigned-clocks = <&clk IMX8MQ_CLK_CLKO2>,
++				  <&clk IMX8MQ_CLK_CLKO2>;
++		assigned-clock-parents = <&clk IMX8MQ_SYS2_PLL_200M>;
++		assigned-clock-rates = <0>, <20000000>;
++
++		reset-gpios = <&gpio3 24 GPIO_ACTIVE_LOW>;
++		standby-gpios = <&gpio2 7 GPIO_ACTIVE_HIGH>;
++		i2csel-gpios = <&gpio2 8 GPIO_ACTIVE_HIGH>;
++		isptrig-gpios = <&gpio3 12 GPIO_ACTIVE_HIGH>;
++		status = "okay";
++
++		port {
++			ap1302_ep: endpoint {
++				remote-endpoint = <&mipi1_sensor_ep>;
++				data-lanes = <1 2 3 4>;
++			};
++		};
++
++		sensors {
++			#address-cells = <1>;
++			#size-cells = <0>;
++			onnn,model = "onnn,arx3a0";
++			sensor@0 {
++				reg = <0>;
++			};
++		};
++	};
++};
++
++&mipi1_sensor_ep {
++	remote-endpoint = <&ap1302_ep>;
++	data-lanes = <1 2 3 4>;
++	csis-wclk;
++};
++
++&iomuxc {
++	pinctrl_csi: csi_grp {
++		fsl,pins = <
++			MX8MQ_IOMUXC_SD1_DATA5_GPIO2_IO7	0x19
++			MX8MQ_IOMUXC_SAI5_RXD3_GPIO3_IO24	0x19
++			MX8MQ_IOMUXC_GPIO1_IO15_CCMSRCGPCMIX_CLKO2      0x59
++		>;
++	};
++};
+diff --git a/drivers/media/i2c/ap1302.c b/drivers/media/i2c/ap1302.c
+index c276f9f0b..54f8baa35 100644
+--- a/drivers/media/i2c/ap1302.c
++++ b/drivers/media/i2c/ap1302.c
+@@ -28,6 +28,8 @@
+ 
+ #define DRIVER_NAME "ap1302"
+ 
++#define AR0430_MODEL 	"onnn,ar0430"
++
+ #define AP1302_FW_WINDOW_SIZE			0x2000
+ #define AP1302_FW_WINDOW_OFFSET			0x8000
+ 
+@@ -541,7 +543,7 @@ static const struct ap1302_sensor_info ap1302_sensor_info[] = {
+ 		.name = "arx3a0",
+ 		.i2c_addr = 0x36,
+ 		.resolution = { 1920, 1080 },
+-		.fps = 30,
++		.fps = 60,
+ 		.format = MEDIA_BUS_FMT_UYVY8_2X8,
+ 		.supplies = (const struct ap1302_sensor_supply[]) {
+ 			{ "vaa", 0 },
+@@ -553,7 +555,7 @@ static const struct ap1302_sensor_info ap1302_sensor_info[] = {
+ 		.model = "onnn,ar0430",
+ 		.name = "ar0430",
+ 		.i2c_addr = 0x36,
+-		.resolution = { 1920, 1080 },
++		.resolution = { 2316, 1746 },
+ 		.fps = 30,
+ 		.format = MEDIA_BUS_FMT_UYVY8_2X8,
+ 		.supplies = (const struct ap1302_sensor_supply[]) {
+@@ -1233,6 +1235,7 @@ static void ap1302_power_off(struct ap1302_device *ap1302)
+ 	}
+ }
+ 
++
+ /* -----------------------------------------------------------------------------
+  * Hardware Configuration
+  */
+@@ -1367,14 +1370,6 @@ static int ap1302_set_mipi_t3_clk(struct ap1302_device *ap1302)
+ static u16 ap1302_wb_values[] = {
+ 	AP1302_AWB_CTRL_MODE_OFF,	/* V4L2_WHITE_BALANCE_MANUAL */
+ 	AP1302_AWB_CTRL_MODE_AUTO,	/* V4L2_WHITE_BALANCE_AUTO */
+-	AP1302_AWB_CTRL_MODE_A,		/* V4L2_WHITE_BALANCE_INCANDESCENT */
+-	AP1302_AWB_CTRL_MODE_D50,	/* V4L2_WHITE_BALANCE_FLUORESCENT */
+-	AP1302_AWB_CTRL_MODE_D65,	/* V4L2_WHITE_BALANCE_FLUORESCENT_H */
+-	AP1302_AWB_CTRL_MODE_HORIZON,	/* V4L2_WHITE_BALANCE_HORIZON */
+-	AP1302_AWB_CTRL_MODE_D65,	/* V4L2_WHITE_BALANCE_DAYLIGHT */
+-	AP1302_AWB_CTRL_MODE_AUTO,	/* V4L2_WHITE_BALANCE_FLASH */
+-	AP1302_AWB_CTRL_MODE_D75,	/* V4L2_WHITE_BALANCE_CLOUDY */
+-	AP1302_AWB_CTRL_MODE_D75,	/* V4L2_WHITE_BALANCE_SHADE */
+ };
+ 
+ static int ap1302_set_wb_mode(struct ap1302_device *ap1302, s32 mode)
+@@ -1389,11 +1384,6 @@ static int ap1302_set_wb_mode(struct ap1302_device *ap1302, s32 mode)
+ 	val &= ~AP1302_AWB_CTRL_MODE_MASK;
+ 	val |= ap1302_wb_values[mode];
+ 
+-	if (mode == V4L2_WHITE_BALANCE_FLASH)
+-		val |= AP1302_AWB_CTRL_FLASH;
+-	else
+-		val &= ~AP1302_AWB_CTRL_FLASH;
+-
+ 	return ap1302_write(ap1302, AP1302_AWB_CTRL, val, NULL);
+ }
+ 
+@@ -1412,11 +1402,6 @@ static int ap1302_set_exposure(struct ap1302_device *ap1302, s32 mode)
+ 	return ap1302_write(ap1302, AP1302_AE_CTRL, val, NULL);
+ }
+ 
+-static int ap1302_set_exp_met(struct ap1302_device *ap1302, s32 val)
+-{
+-	return ap1302_write(ap1302, AP1302_AE_MET, val, NULL);
+-}
+-
+ static int ap1302_set_gain(struct ap1302_device *ap1302, s32 val)
+ {
+ 	return ap1302_write(ap1302, AP1302_AE_MANUAL_GAIN, val, NULL);
+@@ -1442,72 +1427,6 @@ static int ap1302_set_gamma(struct ap1302_device *ap1302, s32 val)
+ 	return ap1302_write(ap1302, AP1302_GAMMA, val, NULL);
+ }
+ 
+-static int ap1302_set_zoom(struct ap1302_device *ap1302, s32 val)
+-{
+-	return ap1302_write(ap1302, AP1302_DZ_TGT_FCT, val, NULL);
+-}
+-
+-static u16 ap1302_sfx_values[] = {
+-	AP1302_SFX_MODE_SFX_NORMAL,	/* V4L2_COLORFX_NONE */
+-	AP1302_SFX_MODE_SFX_BW,		/* V4L2_COLORFX_BW */
+-	AP1302_SFX_MODE_SFX_SEPIA1,	/* V4L2_COLORFX_SEPIA */
+-	AP1302_SFX_MODE_SFX_NEGATIVE,	/* V4L2_COLORFX_NEGATIVE */
+-	AP1302_SFX_MODE_SFX_EMBOSS,	/* V4L2_COLORFX_EMBOSS */
+-	AP1302_SFX_MODE_SFX_SKETCH,	/* V4L2_COLORFX_SKETCH */
+-	AP1302_SFX_MODE_SFX_BLUISH,	/* V4L2_COLORFX_SKY_BLUE */
+-	AP1302_SFX_MODE_SFX_GREENISH,	/* V4L2_COLORFX_GRASS_GREEN */
+-	AP1302_SFX_MODE_SFX_REDISH,	/* V4L2_COLORFX_SKIN_WHITEN */
+-	AP1302_SFX_MODE_SFX_NORMAL,	/* V4L2_COLORFX_VIVID */
+-	AP1302_SFX_MODE_SFX_NORMAL,	/* V4L2_COLORFX_AQUA */
+-	AP1302_SFX_MODE_SFX_NORMAL,	/* V4L2_COLORFX_ART_FREEZE */
+-	AP1302_SFX_MODE_SFX_NORMAL,	/* V4L2_COLORFX_SILHOUETTE */
+-	AP1302_SFX_MODE_SFX_SOLARIZE, /* V4L2_COLORFX_SOLARIZATION */
+-	AP1302_SFX_MODE_SFX_ANTIQUE, /* V4L2_COLORFX_ANTIQUE */
+-	AP1302_SFX_MODE_SFX_NORMAL,	/* V4L2_COLORFX_SET_CBCR */
+-};
+-
+-static int ap1302_set_special_effect(struct ap1302_device *ap1302, s32 val)
+-{
+-	return ap1302_write(ap1302, AP1302_SFX_MODE, ap1302_sfx_values[val],
+-			    NULL);
+-}
+-
+-static u16 ap1302_scene_mode_values[] = {
+-	AP1302_SCENE_CTRL_MODE_NORMAL,		/* V4L2_SCENE_MODE_NONE */
+-	AP1302_SCENE_CTRL_MODE_BACKLIGHT,	/* V4L2_SCENE_MODE_BACKLIGHT */
+-	AP1302_SCENE_CTRL_MODE_BEACH,		/* V4L2_SCENE_MODE_BEACH_SNOW */
+-	AP1302_SCENE_CTRL_MODE_TWILIGHT,	/* V4L2_SCENE_MODE_CANDLE_LIGHT */
+-	AP1302_SCENE_CTRL_MODE_NORMAL,		/* V4L2_SCENE_MODE_DAWN_DUSK */
+-	AP1302_SCENE_CTRL_MODE_NORMAL,		/* V4L2_SCENE_MODE_FALL_COLORS */
+-	AP1302_SCENE_CTRL_MODE_FIREWORKS,	/* V4L2_SCENE_MODE_FIREWORKS */
+-	AP1302_SCENE_CTRL_MODE_LANDSCAPE,	/* V4L2_SCENE_MODE_LANDSCAPE */
+-	AP1302_SCENE_CTRL_MODE_NIGHT,		/* V4L2_SCENE_MODE_NIGHT */
+-	AP1302_SCENE_CTRL_MODE_PARTY,		/* V4L2_SCENE_MODE_PARTY_INDOOR */
+-	AP1302_SCENE_CTRL_MODE_PORTRAIT,	/* V4L2_SCENE_MODE_PORTRAIT */
+-	AP1302_SCENE_CTRL_MODE_SPORT,		/* V4L2_SCENE_MODE_SPORTS */
+-	AP1302_SCENE_CTRL_MODE_SUNSET,		/* V4L2_SCENE_MODE_SUNSET */
+-	AP1302_SCENE_CTRL_MODE_DOCUMENT,	/* V4L2_SCENE_MODE_TEXT */
+-};
+-
+-static int ap1302_set_scene_mode(struct ap1302_device *ap1302, s32 val)
+-{
+-	return ap1302_write(ap1302, AP1302_SCENE_CTRL,
+-			    ap1302_scene_mode_values[val], NULL);
+-}
+-
+-static const u16 ap1302_flicker_values[] = {
+-	AP1302_FLICK_CTRL_MODE_DISABLED,
+-	AP1302_FLICK_CTRL_FREQ(50) | AP1302_FLICK_CTRL_MODE_MANUAL,
+-	AP1302_FLICK_CTRL_FREQ(60) | AP1302_FLICK_CTRL_MODE_MANUAL,
+-	AP1302_FLICK_CTRL_MODE_AUTO,
+-};
+-
+-static int ap1302_set_flicker_freq(struct ap1302_device *ap1302, s32 val)
+-{
+-	return ap1302_write(ap1302, AP1302_FLICK_CTRL,
+-			    ap1302_flicker_values[val], NULL);
+-}
+-
+ static int ap1302_s_ctrl(struct v4l2_ctrl *ctrl)
+ {
+ 	struct ap1302_device *ap1302 =
+@@ -1520,9 +1439,6 @@ static int ap1302_s_ctrl(struct v4l2_ctrl *ctrl)
+ 	case V4L2_CID_EXPOSURE:
+ 		return ap1302_set_exposure(ap1302, ctrl->val);
+ 
+-	case V4L2_CID_EXPOSURE_METERING:
+-		return ap1302_set_exp_met(ap1302, ctrl->val);
+-
+ 	case V4L2_CID_GAIN:
+ 		return ap1302_set_gain(ap1302, ctrl->val);
+ 
+@@ -1538,18 +1454,6 @@ static int ap1302_s_ctrl(struct v4l2_ctrl *ctrl)
+ 	case V4L2_CID_SATURATION:
+ 		return ap1302_set_saturation(ap1302, ctrl->val);
+ 
+-	case V4L2_CID_ZOOM_ABSOLUTE:
+-		return ap1302_set_zoom(ap1302, ctrl->val);
+-
+-	case V4L2_CID_COLORFX:
+-		return ap1302_set_special_effect(ap1302, ctrl->val);
+-
+-	case V4L2_CID_SCENE_MODE:
+-		return ap1302_set_scene_mode(ap1302, ctrl->val);
+-
+-	case V4L2_CID_POWER_LINE_FREQUENCY:
+-		return ap1302_set_flicker_freq(ap1302, ctrl->val);
+-
+ 	default:
+ 		return -EINVAL;
+ 	}
+@@ -1564,7 +1468,7 @@ static const struct v4l2_ctrl_config ap1302_ctrls[] = {
+ 		.ops = &ap1302_ctrl_ops,
+ 		.id = V4L2_CID_AUTO_N_PRESET_WHITE_BALANCE,
+ 		.min = 0,
+-		.max = 9,
++		.max = 1,
+ 		.def = 1,
+ 	}, {
+ 		.ops = &ap1302_ctrl_ops,
+@@ -1611,15 +1515,6 @@ static const struct v4l2_ctrl_config ap1302_ctrls[] = {
+ 		.max = 0xC,
+ 		.step = 1,
+ 		.def = 0xC,
+-	}, {
+-		.ops = &ap1302_ctrl_ops,
+-		.id = V4L2_CID_EXPOSURE_METERING,
+-		.name = "Exposure Metering",
+-		.type = V4L2_CTRL_TYPE_INTEGER,
+-		.min = 0x0,
+-		.max = 0x3,
+-		.step = 1,
+-		.def = 0x1,
+ 	}, {
+ 		.ops = &ap1302_ctrl_ops,
+ 		.id = V4L2_CID_GAIN,
+@@ -1629,33 +1524,6 @@ static const struct v4l2_ctrl_config ap1302_ctrls[] = {
+ 		.max = 0xFFFF,
+ 		.step = 0x100,
+ 		.def = 0x100,
+-	}, {
+-		.ops = &ap1302_ctrl_ops,
+-		.id = V4L2_CID_ZOOM_ABSOLUTE,
+-		.min = 0x0100,
+-		.max = 0x1000,
+-		.step = 1,
+-		.def = 0x0100,
+-	}, {
+-		.ops = &ap1302_ctrl_ops,
+-		.id = V4L2_CID_COLORFX,
+-		.min = 0,
+-		.max = 15,
+-		.def = 0,
+-		.menu_skip_mask = BIT(15) | BIT(12) | BIT(11) | BIT(10) | BIT(9),
+-	}, {
+-		.ops = &ap1302_ctrl_ops,
+-		.id = V4L2_CID_SCENE_MODE,
+-		.min = 0,
+-		.max = 13,
+-		.def = 0,
+-		.menu_skip_mask = BIT(5) | BIT(4),
+-	}, {
+-		.ops = &ap1302_ctrl_ops,
+-		.id = V4L2_CID_POWER_LINE_FREQUENCY,
+-		.min = 0,
+-		.max = 3,
+-		.def = 3,
+ 	},
+ };
+ 
+@@ -2439,8 +2307,13 @@ static int ap1302_load_firmware(struct ap1302_device *ap1302)
+ 
+ 	usleep_range(10000, 20000);
+ 
+-	// Adjust Host interface MIPI rate to use 4 data lane.
+-	ap1302_write(ap1302, AP1302_PREVIEW_DIV_HINF_MIPI, 0x00030002, NULL);
++	/* Adjust Host interface MIPI rate to use 4 data lane
++	 * For AR0430 -> 448Mbps
++	 * For ARX3A0 -> 896Mbps */
++	if (!strcmp(ap1302->sensor_info->model, AR0430_MODEL)) {
++		printk(" DEBUG: AR0430 Model: %s %d", __func__, __LINE__);
++		ap1302_write(ap1302, AP1302_PREVIEW_DIV_HINF_MIPI, 0x00030002, NULL);
++	}
+ 
+ 	/* Check again if PLL is locked aftaer adjusting Host interface MIPI data rate of AP1302 */
+ 	for (cnt = 0 ; !ret && (cnt < 10) ; cnt++) {
+@@ -2821,7 +2694,6 @@ static int ap1302_remove(struct i2c_client *client)
+ {
+ 	struct v4l2_subdev *sd = i2c_get_clientdata(client);
+ 	struct ap1302_device *ap1302 = to_ap1302(sd);
+-
+ 	ap1302_debugfs_cleanup(ap1302);
+ 
+ 	ap1302_hw_cleanup(ap1302);
+-- 
+2.17.1
+
