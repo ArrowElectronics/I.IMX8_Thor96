@@ -1,7 +1,7 @@
-From 5d66a0ead5313e6059d987e15f38c41bc4eddd6e Mon Sep 17 00:00:00 2001
+From 7fefe3210f582d13a8400f983d11b41fe38ddba7 Mon Sep 17 00:00:00 2001
 From: Anil Kumar Mamidala <anil.mamidala@xilinx.com>
 Date: Tue, 16 Nov 2021 17:21:55 +0530
-Subject: [PATCH 03/13] media: i2c: Add ON Semiconductor AP1302 ISP driver
+Subject: [PATCH 03/10] media: i2c: Add ON Semiconductor AP1302 ISP driver
 
 The AP1302 is a standalone ISP for ON Semiconductor sensors.
 AP1302 ISP supports single and dual sensor inputs. The driver

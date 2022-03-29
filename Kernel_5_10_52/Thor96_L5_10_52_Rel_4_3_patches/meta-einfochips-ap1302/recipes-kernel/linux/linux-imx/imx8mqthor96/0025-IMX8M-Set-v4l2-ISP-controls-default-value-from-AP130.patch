@@ -1,29 +1,22 @@
-From 4b116dc6d21ee3f455e5e6b8a523a12c2726787d Mon Sep 17 00:00:00 2001
+From 0abc37d5b5179cb903f6fae26b5eed61e63c1a79 Mon Sep 17 00:00:00 2001
 From: Deepak Rathore <deepak.rathore@einfochips.com>
-Date: Thu, 10 Mar 2022 13:24:21 +0530
-Subject: [PATCH] IMX8M: Set v4l2 ISP controls default value from AP1302
+Date: Thu, 17 Mar 2022 11:14:46 +0530
+Subject: [PATCH 10/10] IMX8M: Set v4l2 ISP controls default value from AP1302
 
 - During boot up read ISP control register values related to v4l2
   control and set it as default value in v4l2 layer from ap1302 driver
 - Return type of sysfs entry for writing AP1302 register is corrected
-- Changed ARX3A0 resolution to 600x600
 
-Change-Id: I8ccee1a98f4d846ba86b73c9e70e3a44bb3bf7a1
+Change-Id: I579d3b5c760a28a2ba637b3efebf3fe34e2f21e8
 Signed-off-by: Deepak Rathore <deepak.rathore@einfochips.com>
+---
+ drivers/media/i2c/ap1302.c | 114 +++++++++++++++++++++++++++++++------
+ 1 file changed, 96 insertions(+), 18 deletions(-)
 
 diff --git a/drivers/media/i2c/ap1302.c b/drivers/media/i2c/ap1302.c
-index 6349286b3..c0db73602 100644
+index 214d6b9c1..8b0bddce1 100644
 --- a/drivers/media/i2c/ap1302.c
 +++ b/drivers/media/i2c/ap1302.c
-@@ -36,7 +36,7 @@
- #define AP1302_MIN_WIDTH			24U
- #define AP1302_MIN_HEIGHT			16U
- #define AP1302_MAX_WIDTH			4224U
--#define AP1302_MAX_HEIGHT			4092U
-+#define AP1302_MAX_HEIGHT			3156U
- 
- #define AP1302_REG_16BIT(n)			((2 << 24) | (n))
- #define AP1302_REG_32BIT(n)			((4 << 24) | (n))
 @@ -376,6 +376,10 @@
  #define AP1302_TCLK_PRE_MASK			0xFF00
  #define AP1302_TCLK_PRE_SHIFT			0x8
@@ -53,15 +46,6 @@ index 6349286b3..c0db73602 100644
  #define MAX_FW_LOAD_RETRIES 3
  
  static const struct ap1302_format_info supported_video_formats[] = {
-@@ -542,7 +557,7 @@ static const struct ap1302_sensor_info ap1302_sensor_info[] = {
- 		.model = "onnn,arx3a0",
- 		.name = "arx3a0",
- 		.i2c_addr = 0x36,
--		.resolution = { 1280, 720 },
-+		.resolution = { 600, 600 },
- 		.fps = 120,
- 		.format = MEDIA_BUS_FMT_UYVY8_2X8,
- 		.supplies = (const struct ap1302_sensor_supply[]) {
 @@ -954,7 +969,7 @@ static int ap1302_reg_data_set(void *arg, u64 val)
  		goto unlock;
  	}

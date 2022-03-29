@@ -1,24 +1,196 @@
-From 0d6f690618ff28bfeae362df50b69d74531eeeb5 Mon Sep 17 00:00:00 2001
-From: Tejas Patel <tejas.patel1@einfochips.com>
-Date: Wed, 19 Jan 2022 13:25:02 +0530
-Subject: [PATCH 09/13] drivers: media: i2c: Modify AP1302 driver to work on
- IMX platform
+From ea1d17890329ea450de0971fd129df022b0dcf0c Mon Sep 17 00:00:00 2001
+From: Deepak Rathore <deepak.rathore@einfochips.com>
+Date: Tue, 8 Mar 2022 20:40:36 +0530
+Subject: [PATCH 06/10] IMX8MQ: Added AP1302 ISP support to enable AR0430
+ camera sensor
 
-This patch updates AP1302 driver so that it can work on
-IMX platforms.
+- Enables AP1302 as loadable module in imx_v8_defconfig
+- Updates the frequency of MIPI CSI1 of IMX8MQ, to get
+  4 data lane working
+- Added new DTS imx8mq-thor96-ap1302-ar0430.dts for AR0430
+- Added changes in AP1302 driver so that it can work on IMX platforms
+- Increases CMA size,so that gstreamer can work on higher resolution
+- Added reserved memory node in DTS to increase CMA pool size
 
-Change-Id: Ieda9fba02ee7d6613dd44071c5ba3abf9d940d88
-Signed-off-by: Tejas Patel <tejas.patel1@einfochips.com>
-Signed-off-by: Tanvi Chauhan <tanvi.chauhan@einfochips.com>
+Change-Id: I14cfbddc7b786f4bd13f51916103efc665514cf3
+Signed-off-by: Deepak Rathore <deepak.rathore@einfochips.com>
 ---
- drivers/media/i2c/ap1302.c | 579 +++++++++++++++++--------------------
- 1 file changed, 261 insertions(+), 318 deletions(-)
+ arch/arm64/boot/dts/freescale/Makefile        |   2 +-
+ .../freescale/imx8mq-thor96-ap1302-ar0430.dts |  67 ++
+ .../boot/dts/freescale/imx8mq-thor96.dts      |  14 +
+ arch/arm64/boot/dts/freescale/imx8mq.dtsi     |   2 +-
+ arch/arm64/configs/imx_v8_defconfig           |   3 +-
+ drivers/media/i2c/ap1302.c                    | 586 ++++++++----------
+ 6 files changed, 351 insertions(+), 323 deletions(-)
+ create mode 100644 arch/arm64/boot/dts/freescale/imx8mq-thor96-ap1302-ar0430.dts
 
+diff --git a/arch/arm64/boot/dts/freescale/Makefile b/arch/arm64/boot/dts/freescale/Makefile
+index cabf63cb9..f59fc6099 100644
+--- a/arch/arm64/boot/dts/freescale/Makefile
++++ b/arch/arm64/boot/dts/freescale/Makefile
+@@ -123,7 +123,7 @@ dtb-$(CONFIG_ARCH_MXC) += imx8mq-nitrogen.dtb
+ dtb-$(CONFIG_ARCH_MXC) += imx8mq-phanbell.dtb
+ dtb-$(CONFIG_ARCH_MXC) += imx8mq-pico-pi.dtb
+ dtb-$(CONFIG_ARCH_MXC) += imx8mq-thor96.dtb imx8mq-thor96-dual-display.dtb imx8mq-thor96-dcss-rm67191.dtb \
+-			  imx8mq-thor96-lcdif-adv7535.dtb
++			  imx8mq-thor96-lcdif-adv7535.dtb imx8mq-thor96-ap1302-ar0430.dtb
+ dtb-$(CONFIG_ARCH_MXC) += imx8mq-evk-dp.dtb
+ dtb-$(CONFIG_ARCH_MXC) += imx8mq-zii-ultra-rmb3.dtb
+ dtb-$(CONFIG_ARCH_MXC) += imx8mq-zii-ultra-zest.dtb
+diff --git a/arch/arm64/boot/dts/freescale/imx8mq-thor96-ap1302-ar0430.dts b/arch/arm64/boot/dts/freescale/imx8mq-thor96-ap1302-ar0430.dts
+new file mode 100644
+index 000000000..b96fcf0e3
+--- /dev/null
++++ b/arch/arm64/boot/dts/freescale/imx8mq-thor96-ap1302-ar0430.dts
+@@ -0,0 +1,67 @@
++// SPDX-License-Identifier: GPL-2.0
++/*
++ * Copyright 2019 NXP.
++ */
++
++#include "imx8mq-thor96.dts"
++
++&ov5640_mipi2 {
++	status = "disabled";
++};
++
++&ov5640_mipi {
++	status = "disabled";
++};
++
++&i2c3 {
++	ap1302_mipi: ap1302@3d {
++		compatible = "onnn,ap1302";
++		reg = <0x3d>;
++
++		pinctrl-0 = <&pinctrl_csi>;
++		clocks = <&clk IMX8MQ_CLK_CLKO2>;
++		clock-names = "xclk";
++		assigned-clocks = <&clk IMX8MQ_CLK_CLKO2>,
++				  <&clk IMX8MQ_CLK_CLKO2>;
++		assigned-clock-parents = <&clk IMX8MQ_SYS2_PLL_200M>;
++		assigned-clock-rates = <0>, <20000000>;
++
++		reset-gpios = <&gpio3 24 GPIO_ACTIVE_LOW>;
++		standby-gpios = <&gpio2 7 GPIO_ACTIVE_HIGH>;
++		i2csel-gpios = <&gpio2 8 GPIO_ACTIVE_HIGH>;
++		isptrig-gpios = <&gpio3 12 GPIO_ACTIVE_HIGH>;
++		status = "okay";
++
++		port {
++			ap1302_ep: endpoint {
++				remote-endpoint = <&mipi1_sensor_ep>;
++				data-lanes = <1 2 3 4>;
++			};
++		};
++
++		sensors {
++			#address-cells = <1>;
++			#size-cells = <0>;
++			onnn,model = "onnn,ar0430";
++			sensor@0 {
++				reg = <0>;
++			};
++		};
++	};
++};
++
++&mipi1_sensor_ep {
++	remote-endpoint = <&ap1302_ep>;
++	data-lanes = <1 2 3 4>;
++	csis-wclk;
++};
++
++&iomuxc {
++	pinctrl_csi: csi_grp {
++		fsl,pins = <
++			MX8MQ_IOMUXC_SD1_DATA5_GPIO2_IO7	0x19
++			MX8MQ_IOMUXC_SAI5_RXD3_GPIO3_IO24	0x19
++			MX8MQ_IOMUXC_GPIO1_IO15_CCMSRCGPCMIX_CLKO2      0x59
++		>;
++	};
++};
+diff --git a/arch/arm64/boot/dts/freescale/imx8mq-thor96.dts b/arch/arm64/boot/dts/freescale/imx8mq-thor96.dts
+index 6415c8ff6..a32062a22 100644
+--- a/arch/arm64/boot/dts/freescale/imx8mq-thor96.dts
++++ b/arch/arm64/boot/dts/freescale/imx8mq-thor96.dts
+@@ -30,6 +30,20 @@
+ 		reg = <0x00000000 0x40000000 0 0x80000000>;
+ 	};
+ 
++	resmem: reserved-memory {
++		#address-cells = <2>;
++		#size-cells = <2>;
++		ranges;
++		/* global autoconfigured region for contiguous allocations */
++		linux,cma {
++			compatible = "shared-dma-pool";
++			reusable;
++			size = <0 0x38000000>;
++			alloc-ranges = <0 0x80000000 0 0x38000000>;
++			linux,cma-default;
++		};
++	};
++
+ 	leds {
+ 		compatible = "gpio-leds";
+ 		pinctrl-names = "default";
+diff --git a/arch/arm64/boot/dts/freescale/imx8mq.dtsi b/arch/arm64/boot/dts/freescale/imx8mq.dtsi
+index 8cd660a22..a434ed697 100755
+--- a/arch/arm64/boot/dts/freescale/imx8mq.dtsi
++++ b/arch/arm64/boot/dts/freescale/imx8mq.dtsi
+@@ -1139,7 +1139,7 @@
+ 				assigned-clocks = <&clk IMX8MQ_CLK_CSI1_CORE>,
+ 						  <&clk IMX8MQ_CLK_CSI1_PHY_REF>,
+ 						  <&clk IMX8MQ_CLK_CSI1_ESC>;
+-				assigned-clock-rates = <133000000>, <100000000>, <66000000>;
++				assigned-clock-rates = <266000000>, <333000000>, <66000000>;
+ 				power-domains = <&pgc_mipi_csi1>;
+ 				csis-phy-reset = <&src 0x4c 7>;
+ 				phy-gpr = <&iomuxc_gpr 0x88>;
+diff --git a/arch/arm64/configs/imx_v8_defconfig b/arch/arm64/configs/imx_v8_defconfig
+index c5879e93d..f04d9d73c 100644
+--- a/arch/arm64/configs/imx_v8_defconfig
++++ b/arch/arm64/configs/imx_v8_defconfig
+@@ -525,6 +525,7 @@ CONFIG_MXC_MIPI_CSI=y
+ CONFIG_MXC_CAMERA_OV5640_MIPI_V2=y
+ CONFIG_V4L_MEM2MEM_DRIVERS=y
+ CONFIG_SDR_PLATFORM_DRIVERS=y
++CONFIG_VIDEO_AP1302=m
+ CONFIG_VIDEO_IMX219=m
+ CONFIG_VIDEO_OV5640=y
+ CONFIG_VIDEO_OV5645=m
+@@ -963,7 +964,7 @@ CONFIG_CRYPTO_DEV_HISI_HPRE=m
+ CONFIG_CRYPTO_DEV_AMLOGIC_GXL=m
+ CONFIG_INDIRECT_PIO=y
+ CONFIG_CRC_CCITT=m
+-CONFIG_CMA_SIZE_MBYTES=32
++CONFIG_CMA_SIZE_MBYTES=256
+ CONFIG_PRINTK_TIME=y
+ CONFIG_DEBUG_INFO=y
+ CONFIG_MAGIC_SYSRQ=y
 diff --git a/drivers/media/i2c/ap1302.c b/drivers/media/i2c/ap1302.c
-index 96da195c6..c276f9f0b 100644
+index 96da195c6..e525714e3 100644
 --- a/drivers/media/i2c/ap1302.c
 +++ b/drivers/media/i2c/ap1302.c
-@@ -110,6 +110,9 @@
+@@ -28,13 +28,15 @@
+ 
+ #define DRIVER_NAME "ap1302"
+ 
++#define AR0430_MODEL   "onnn,ar0430"
++
+ #define AP1302_FW_WINDOW_SIZE			0x2000
+ #define AP1302_FW_WINDOW_OFFSET			0x8000
+ 
+ #define AP1302_MIN_WIDTH			24U
+ #define AP1302_MIN_HEIGHT			16U
+ #define AP1302_MAX_WIDTH			4224U
+-#define AP1302_MAX_HEIGHT			4092U
++#define AP1302_MAX_HEIGHT			3156U
+ 
+ #define AP1302_REG_16BIT(n)			((2 << 24) | (n))
+ #define AP1302_REG_32BIT(n)			((4 << 24) | (n))
+@@ -110,6 +112,9 @@
  #define AP1302_PREVIEW_ROI_X1			AP1302_REG_16BIT(0x2008)
  #define AP1302_PREVIEW_ROI_Y1			AP1302_REG_16BIT(0x200a)
  #define AP1302_PREVIEW_OUT_FMT			AP1302_REG_16BIT(0x2012)
@@ -28,7 +200,7 @@ index 96da195c6..c276f9f0b 100644
  #define AP1302_PREVIEW_OUT_FMT_IPIPE_BYPASS	BIT(13)
  #define AP1302_PREVIEW_OUT_FMT_SS		BIT(12)
  #define AP1302_PREVIEW_OUT_FMT_FAKE_EN		BIT(11)
-@@ -164,6 +167,19 @@
+@@ -164,6 +169,19 @@
  #define AP1302_PREVIEW_HINF_CTRL_SPOOF		BIT(4)
  #define AP1302_PREVIEW_HINF_CTRL_MIPI_MODE	BIT(3)
  #define AP1302_PREVIEW_HINF_CTRL_MIPI_LANES(n)	((n) << 0)
@@ -48,7 +220,7 @@ index 96da195c6..c276f9f0b 100644
  
  /* IQ Registers */
  #define AP1302_AE_CTRL			AP1302_REG_16BIT(0x5002)
-@@ -291,6 +307,7 @@
+@@ -291,6 +309,7 @@
  #define AP1302_DMA_CTRL_MODE_UNPACK		(4 << 0)
  #define AP1302_DMA_CTRL_MODE_OTP_READ		(5 << 0)
  #define AP1302_DMA_CTRL_MODE_SIP_PROBE		(6 << 0)
@@ -56,7 +228,7 @@ index 96da195c6..c276f9f0b 100644
  
  #define AP1302_BRIGHTNESS			AP1302_REG_16BIT(0x7000)
  #define AP1302_CONTRAST			AP1302_REG_16BIT(0x7002)
-@@ -303,6 +320,8 @@
+@@ -303,6 +322,8 @@
  #define AP1302_SIP_CRC				AP1302_REG_16BIT(0xf052)
  
  /* Advanced System Registers */
@@ -65,7 +237,7 @@ index 96da195c6..c276f9f0b 100644
  #define AP1302_ADV_IRQ_SYS_INTE			AP1302_REG_32BIT(0x00230000)
  #define AP1302_ADV_IRQ_SYS_INTE_TEST_COUNT	BIT(25)
  #define AP1302_ADV_IRQ_SYS_INTE_HINF_1		BIT(24)
-@@ -358,15 +377,15 @@
+@@ -358,15 +379,15 @@
  struct ap1302_device;
  
  enum {
@@ -84,7 +256,7 @@ index 96da195c6..c276f9f0b 100644
  };
  
  struct ap1302_format {
-@@ -390,6 +409,7 @@ struct ap1302_sensor_info {
+@@ -390,6 +411,7 @@ struct ap1302_sensor_info {
  	unsigned int i2c_addr;
  	struct ap1302_size resolution;
  	u32 format;
@@ -92,7 +264,7 @@ index 96da195c6..c276f9f0b 100644
  	const struct ap1302_sensor_supply *supplies;
  };
  
-@@ -417,6 +437,8 @@ struct ap1302_device {
+@@ -417,6 +439,8 @@ struct ap1302_device {
  
  	struct gpio_desc *reset_gpio;
  	struct gpio_desc *standby_gpio;
@@ -101,7 +273,7 @@ index 96da195c6..c276f9f0b 100644
  	struct clk *clock;
  	struct regmap *regmap16;
  	struct regmap *regmap32;
-@@ -434,6 +456,9 @@ struct ap1302_device {
+@@ -434,6 +458,9 @@ struct ap1302_device {
  	unsigned int width_factor;
  	bool streaming;
  
@@ -111,7 +283,7 @@ index 96da195c6..c276f9f0b 100644
  	struct v4l2_ctrl_handler ctrls;
  
  	const struct ap1302_sensor_info *sensor_info;
-@@ -443,6 +468,7 @@ struct ap1302_device {
+@@ -443,6 +470,7 @@ struct ap1302_device {
  		struct dentry *dir;
  		struct mutex lock;
  		u32 sipm_addr;
@@ -119,7 +291,7 @@ index 96da195c6..c276f9f0b 100644
  	} debugfs;
  };
  
-@@ -452,25 +478,19 @@ static inline struct ap1302_device *to_ap1302(struct v4l2_subdev *sd)
+@@ -452,25 +480,19 @@ static inline struct ap1302_device *to_ap1302(struct v4l2_subdev *sd)
  }
  
  struct ap1302_firmware_header {
@@ -150,7 +322,7 @@ index 96da195c6..c276f9f0b 100644
  	},
  };
  
-@@ -516,7 +536,34 @@ static const struct ap1302_sensor_info ap1302_sensor_info[] = {
+@@ -516,7 +538,34 @@ static const struct ap1302_sensor_info ap1302_sensor_info[] = {
  			{ "vdd", 0 },
  			{ NULL, 0 },
  		},
@@ -172,7 +344,7 @@ index 96da195c6..c276f9f0b 100644
 +		.model = "onnn,ar0430",
 +		.name = "ar0430",
 +		.i2c_addr = 0x36,
-+		.resolution = { 1920, 1080 },
++		.resolution = { 2316, 1746 },
 +		.fps = 30,
 +		.format = MEDIA_BUS_FMT_UYVY8_2X8,
 +		.supplies = (const struct ap1302_sensor_supply[]) {
@@ -186,7 +358,7 @@ index 96da195c6..c276f9f0b 100644
  };
  
  static const struct ap1302_sensor_info ap1302_sensor_info_tpg = {
-@@ -800,7 +847,39 @@ static int ap1302_sipm_write(struct ap1302_device *ap1302, unsigned int port,
+@@ -800,7 +849,39 @@ static int ap1302_sipm_write(struct ap1302_device *ap1302, unsigned int port,
  /* -----------------------------------------------------------------------------
   * Debugfs
   */
@@ -200,7 +372,7 @@ index 96da195c6..c276f9f0b 100644
 +
 +	return 0;
 +}
-+
+ 
 +static int ap1302_reg_addr_set(void *arg, u64 val)
 +{
 +	struct ap1302_device *ap1302 = arg;
@@ -216,7 +388,7 @@ index 96da195c6..c276f9f0b 100644
 +	default:
 +		return -EINVAL;
 +	}
- 
++
 +	mutex_lock(&ap1302->debugfs.lock);
 +	ap1302->debugfs.reg_addr = val;
 +	mutex_unlock(&ap1302->debugfs.lock);
@@ -226,7 +398,7 @@ index 96da195c6..c276f9f0b 100644
  static int ap1302_sipm_addr_get(void *arg, u64 *val)
  {
  	struct ap1302_device *ap1302 = arg;
-@@ -834,6 +913,53 @@ static int ap1302_sipm_addr_set(void *arg, u64 val)
+@@ -834,6 +915,53 @@ static int ap1302_sipm_addr_set(void *arg, u64 val)
  	return 0;
  }
  
@@ -280,7 +452,7 @@ index 96da195c6..c276f9f0b 100644
  static int ap1302_sipm_data_get(void *arg, u64 *val)
  {
  	struct ap1302_device *ap1302 = arg;
-@@ -979,6 +1105,24 @@ DEFINE_DEBUGFS_ATTRIBUTE(ap1302_sipm_addr_fops, ap1302_sipm_addr_get,
+@@ -979,6 +1107,24 @@ DEFINE_DEBUGFS_ATTRIBUTE(ap1302_sipm_addr_fops, ap1302_sipm_addr_get,
  			 ap1302_sipm_addr_set, "0x%08llx\n");
  DEFINE_DEBUGFS_ATTRIBUTE(ap1302_sipm_data_fops, ap1302_sipm_data_get,
  			 ap1302_sipm_data_set, "0x%08llx\n");
@@ -305,7 +477,7 @@ index 96da195c6..c276f9f0b 100644
  
  /* The debugfs is to read and write mipi clk parameters tclk_post values */
  DEFINE_DEBUGFS_ATTRIBUTE(ap1302_mipi_tclk_post_fops, ap1302_mipi_tclk_post_get,
-@@ -1003,6 +1147,10 @@ static void ap1302_debugfs_init(struct ap1302_device *ap1302)
+@@ -1003,6 +1149,10 @@ static void ap1302_debugfs_init(struct ap1302_device *ap1302)
  
  	ap1302->debugfs.dir = dir;
  
@@ -316,7 +488,7 @@ index 96da195c6..c276f9f0b 100644
  	debugfs_create_file_unsafe("sipm_addr", 0600, ap1302->debugfs.dir,
  				   ap1302, &ap1302_sipm_addr_fops);
  	debugfs_create_file_unsafe("sipm_data", 0600, ap1302->debugfs.dir,
-@@ -1023,68 +1171,6 @@ static void ap1302_debugfs_cleanup(struct ap1302_device *ap1302)
+@@ -1023,68 +1173,6 @@ static void ap1302_debugfs_cleanup(struct ap1302_device *ap1302)
   * Power Handling
   */
  
@@ -385,7 +557,7 @@ index 96da195c6..c276f9f0b 100644
  static int ap1302_power_on(struct ap1302_device *ap1302)
  {
  	int ret;
-@@ -1194,7 +1280,6 @@ static int ap1302_configure(struct ap1302_device *ap1302)
+@@ -1194,7 +1282,6 @@ static int ap1302_configure(struct ap1302_device *ap1302)
  	const struct ap1302_format *format = &ap1302->formats[AP1302_PAD_SOURCE];
  	unsigned int data_lanes = ap1302->bus_cfg.bus.mipi_csi2.num_data_lanes;
  	int ret = 0;
@@ -393,7 +565,7 @@ index 96da195c6..c276f9f0b 100644
  	ap1302_write(ap1302, AP1302_PREVIEW_HINF_CTRL,
  		     AP1302_PREVIEW_HINF_CTRL_SPOOF |
  		     AP1302_PREVIEW_HINF_CTRL_MIPI_LANES(data_lanes), &ret);
-@@ -1205,6 +1290,8 @@ static int ap1302_configure(struct ap1302_device *ap1302)
+@@ -1205,6 +1292,8 @@ static int ap1302_configure(struct ap1302_device *ap1302)
  		     format->format.height, &ret);
  	ap1302_write(ap1302, AP1302_PREVIEW_OUT_FMT,
  		     format->info->out_fmt, &ret);
@@ -402,7 +574,7 @@ index 96da195c6..c276f9f0b 100644
  	if (ret < 0)
  		return ret;
  
-@@ -1247,7 +1334,6 @@ static int ap1302_stall(struct ap1302_device *ap1302, bool stall)
+@@ -1247,7 +1336,6 @@ static int ap1302_stall(struct ap1302_device *ap1302, bool stall)
  				    AP1302_SYS_START_STALL_MODE_DISABLED, NULL);
  	}
  }
@@ -410,18 +582,7 @@ index 96da195c6..c276f9f0b 100644
  static int ap1302_set_mipi_t3_clk(struct ap1302_device *ap1302)
  {
  	unsigned int mipi_t3, t_clk_post, t_clk_pre;
-@@ -1652,6 +1738,10 @@ static int ap1302_init_cfg(struct v4l2_subdev *sd,
- 		format->colorspace = V4L2_COLORSPACE_SRGB;
- 	}
- 
-+	ap1302->pix.pixelformat = V4L2_PIX_FMT_UYVY;
-+	ap1302->pix.width = info->resolution.width;
-+	ap1302->pix.height = info->resolution.height;
-+
- 	return 0;
- }
- 
-@@ -1685,45 +1775,48 @@ static int ap1302_enum_frame_size(struct v4l2_subdev *sd,
+@@ -1685,45 +1773,48 @@ static int ap1302_enum_frame_size(struct v4l2_subdev *sd,
  				  struct v4l2_subdev_pad_config *cfg,
  				  struct v4l2_subdev_frame_size_enum *fse)
  {
@@ -440,9 +601,6 @@ index 96da195c6..c276f9f0b 100644
 +		if (supported_video_formats[i].code == fse->code)
 +			break;
 +	}
-+
-+	if (i >= ARRAY_SIZE(supported_video_formats))
-+		return -EINVAL;
  
 -	if (fse->pad != AP1302_PAD_SOURCE) {
 -		/*
@@ -451,10 +609,8 @@ index 96da195c6..c276f9f0b 100644
 -		 */
 -		if (fse->code != ap1302->sensor_info->format)
 -			return -EINVAL;
-+	fse->min_width = resolution->width;
-+	fse->max_width = resolution->width;
-+	fse->min_height = resolution->height;
-+	fse->max_height = resolution->height;
++	if (i >= ARRAY_SIZE(supported_video_formats))
++		return -EINVAL;
  
 -		fse->min_width = ap1302->sensor_info->resolution.width;
 -		fse->min_height = ap1302->sensor_info->resolution.height;
@@ -469,22 +625,27 @@ index 96da195c6..c276f9f0b 100644
 -			if (supported_video_formats[i].code == fse->code)
 -				break;
 -		}
-+	return 0;
-+}
++	fse->min_width = resolution->width;
++	fse->max_width = resolution->width;
++	fse->min_height = resolution->height;
++	fse->max_height = resolution->height;
  
 -		if (i >= ARRAY_SIZE(supported_video_formats))
 -			return -EINVAL;
-+static int ap1302_enum_frame_interval(struct v4l2_subdev *sd,
-+				      struct v4l2_subdev_pad_config *cfg,
-+				      struct v4l2_subdev_frame_interval_enum *fie)
-+{
-+	struct ap1302_device *ap1302 = to_ap1302(sd);
++	return 0;
++}
  
 -		fse->min_width = AP1302_MIN_WIDTH * ap1302->width_factor;
 -		fse->min_height = AP1302_MIN_HEIGHT;
 -		fse->max_width = AP1302_MAX_WIDTH;
 -		fse->max_height = AP1302_MAX_HEIGHT;
 -	}
++static int ap1302_enum_frame_interval(struct v4l2_subdev *sd,
++				      struct v4l2_subdev_pad_config *cfg,
++				      struct v4l2_subdev_frame_interval_enum *fie)
++{
++	struct ap1302_device *ap1302 = to_ap1302(sd);
++
 +	if (fie->pad != 0)
 +		return -EINVAL;
 +	if (fie->index)
@@ -499,7 +660,7 @@ index 96da195c6..c276f9f0b 100644
  
  static int ap1302_get_fmt(struct v4l2_subdev *sd,
  			  struct v4l2_subdev_pad_config *cfg,
-@@ -1825,7 +1918,6 @@ static int ap1302_s_stream(struct v4l2_subdev *sd, int enable)
+@@ -1825,7 +1916,6 @@ static int ap1302_s_stream(struct v4l2_subdev *sd, int enable)
  	int ret;
  
  	mutex_lock(&ap1302->lock);
@@ -507,7 +668,7 @@ index 96da195c6..c276f9f0b 100644
  	if (enable == ap1302->streaming)
  		goto done;
  
-@@ -2105,7 +2197,6 @@ static int ap1302_subdev_registered(struct v4l2_subdev *sd)
+@@ -2105,7 +2195,6 @@ static int ap1302_subdev_registered(struct v4l2_subdev *sd)
  	struct ap1302_device *ap1302 = to_ap1302(sd);
  	unsigned int i;
  	int ret;
@@ -515,7 +676,7 @@ index 96da195c6..c276f9f0b 100644
  	for (i = 0; i < ARRAY_SIZE(ap1302->sensors); ++i) {
  		struct ap1302_sensor *sensor = &ap1302->sensors[i];
  
-@@ -2117,7 +2208,6 @@ static int ap1302_subdev_registered(struct v4l2_subdev *sd)
+@@ -2117,7 +2206,6 @@ static int ap1302_subdev_registered(struct v4l2_subdev *sd)
  		ret = v4l2_device_register_subdev(sd->v4l2_dev, &sensor->sd);
  		if (ret)
  			return ret;
@@ -523,7 +684,7 @@ index 96da195c6..c276f9f0b 100644
  		ret = media_create_pad_link(&sensor->sd.entity, 0,
  					    &sd->entity, i,
  					    MEDIA_LNK_FL_IMMUTABLE |
-@@ -2137,6 +2227,7 @@ static const struct v4l2_subdev_pad_ops ap1302_pad_ops = {
+@@ -2137,6 +2225,7 @@ static const struct v4l2_subdev_pad_ops ap1302_pad_ops = {
  	.init_cfg = ap1302_init_cfg,
  	.enum_mbus_code = ap1302_enum_mbus_code,
  	.enum_frame_size = ap1302_enum_frame_size,
@@ -531,7 +692,7 @@ index 96da195c6..c276f9f0b 100644
  	.get_fmt = ap1302_get_fmt,
  	.set_fmt = ap1302_set_fmt,
  	.get_selection = ap1302_get_selection,
-@@ -2161,74 +2252,6 @@ static const struct v4l2_subdev_internal_ops ap1302_subdev_internal_ops = {
+@@ -2161,74 +2250,6 @@ static const struct v4l2_subdev_internal_ops ap1302_subdev_internal_ops = {
  	.registered = ap1302_subdev_registered,
  };
  
@@ -606,7 +767,7 @@ index 96da195c6..c276f9f0b 100644
  static int ap1302_sensor_parse_of(struct ap1302_device *ap1302,
  				  struct device_node *node)
  {
-@@ -2262,98 +2285,6 @@ static int ap1302_sensor_parse_of(struct ap1302_device *ap1302,
+@@ -2262,98 +2283,6 @@ static int ap1302_sensor_parse_of(struct ap1302_device *ap1302,
  	return 0;
  }
  
@@ -705,7 +866,16 @@ index 96da195c6..c276f9f0b 100644
  static void ap1302_sensor_cleanup(struct ap1302_sensor *sensor)
  {
  	media_entity_cleanup(&sensor->sd.entity);
-@@ -2470,18 +2401,13 @@ static int ap1302_load_firmware(struct ap1302_device *ap1302)
+@@ -2396,7 +2325,7 @@ static int ap1302_request_firmware(struct ap1302_device *ap1302)
+ 		return -EINVAL;
+ 	}
+ 
+-	dev_dbg(ap1302->dev, "Requesting firmware %s\n", name);
++	dev_info(ap1302->dev, "Requesting firmware %s\n", name);
+ 
+ 	ret = request_firmware(&ap1302->fw, name, ap1302->dev);
+ 	if (ret) {
+@@ -2470,18 +2399,13 @@ static int ap1302_load_firmware(struct ap1302_device *ap1302)
  	unsigned int fw_size;
  	const u8 *fw_data;
  	unsigned int win_pos = 0;
@@ -726,7 +896,7 @@ index 96da195c6..c276f9f0b 100644
  	/*
  	 * Load the PLL initialization settings, set the bootdata stage to 2 to
  	 * apply the basic_init_hp settings, and wait 1ms for the PLL to lock.
-@@ -2495,6 +2421,14 @@ static int ap1302_load_firmware(struct ap1302_device *ap1302)
+@@ -2495,6 +2419,14 @@ static int ap1302_load_firmware(struct ap1302_device *ap1302)
  	if (ret)
  		return ret;
  
@@ -741,7 +911,7 @@ index 96da195c6..c276f9f0b 100644
  	usleep_range(1000, 2000);
  
  	/* Load the rest of the bootdata content and verify the CRC. */
-@@ -2503,17 +2437,17 @@ static int ap1302_load_firmware(struct ap1302_device *ap1302)
+@@ -2503,17 +2435,22 @@ static int ap1302_load_firmware(struct ap1302_device *ap1302)
  	if (ret)
  		return ret;
  
@@ -751,8 +921,13 @@ index 96da195c6..c276f9f0b 100644
 -	ret = ap1302_read(ap1302, AP1302_SIP_CRC, &crc);
 -	if (ret)
 -		return ret;
-+	// Adjust Host interface MIPI rate to use 4 data lane.
-+	ap1302_write(ap1302, AP1302_PREVIEW_DIV_HINF_MIPI, 0x00030002, NULL);
++	/* Adjust Host interface MIPI rate to use 4 data lane
++	 * For AR0430 -> 448Mbps
++	 * For ARX3A0 -> 896Mbps */
++	if (!strcmp(ap1302->sensor_info->model, AR0430_MODEL)) {
++		dev_info(ap1302->dev, "AR0430 Model Selected \n");
++		ap1302_write(ap1302, AP1302_PREVIEW_DIV_HINF_MIPI, 0x00030002, NULL);
++	}
  
 -	if (crc != fw_hdr->crc) {
 -		dev_warn(ap1302->dev,
@@ -768,7 +943,7 @@ index 96da195c6..c276f9f0b 100644
  	}
  
  	/*
-@@ -2524,6 +2458,19 @@ static int ap1302_load_firmware(struct ap1302_device *ap1302)
+@@ -2524,6 +2461,19 @@ static int ap1302_load_firmware(struct ap1302_device *ap1302)
  	if (ret)
  		return ret;
  
@@ -788,7 +963,7 @@ index 96da195c6..c276f9f0b 100644
  	/* The AP1302 starts outputting frames right after boot, stop it. */
  	ret = ap1302_stall(ap1302, true);
  	if (ret)
-@@ -2571,14 +2518,6 @@ static int ap1302_hw_init(struct ap1302_device *ap1302)
+@@ -2571,14 +2521,6 @@ static int ap1302_hw_init(struct ap1302_device *ap1302)
  	if (ret)
  		return ret;
  
@@ -803,7 +978,7 @@ index 96da195c6..c276f9f0b 100644
  	/*
  	 * Load the firmware, retrying in case of CRC errors. The AP1302 is
  	 * reset with a full power cycle between each attempt.
-@@ -2586,7 +2525,7 @@ static int ap1302_hw_init(struct ap1302_device *ap1302)
+@@ -2586,7 +2528,7 @@ static int ap1302_hw_init(struct ap1302_device *ap1302)
  	for (retries = 0; retries < MAX_FW_LOAD_RETRIES; ++retries) {
  		ret = ap1302_power_on(ap1302);
  		if (ret < 0)
@@ -812,7 +987,7 @@ index 96da195c6..c276f9f0b 100644
  
  		ret = ap1302_detect_chip(ap1302);
  		if (ret)
-@@ -2606,15 +2545,13 @@ static int ap1302_hw_init(struct ap1302_device *ap1302)
+@@ -2606,15 +2548,13 @@ static int ap1302_hw_init(struct ap1302_device *ap1302)
  		dev_err(ap1302->dev,
  			"Firmware load retries exceeded, aborting\n");
  		ret = -ETIMEDOUT;
@@ -829,7 +1004,7 @@ index 96da195c6..c276f9f0b 100644
  error_firmware:
  	release_firmware(ap1302->fw);
  
-@@ -2624,7 +2561,6 @@ static int ap1302_hw_init(struct ap1302_device *ap1302)
+@@ -2624,7 +2564,6 @@ static int ap1302_hw_init(struct ap1302_device *ap1302)
  static void ap1302_hw_cleanup(struct ap1302_device *ap1302)
  {
  	ap1302_power_off(ap1302);
@@ -837,7 +1012,7 @@ index 96da195c6..c276f9f0b 100644
  }
  
  /* -----------------------------------------------------------------------------
-@@ -2648,12 +2584,11 @@ static int ap1302_config_v4l2(struct ap1302_device *ap1302)
+@@ -2648,12 +2587,11 @@ static int ap1302_config_v4l2(struct ap1302_device *ap1302)
  
  	sd->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE | V4L2_SUBDEV_FL_HAS_EVENTS;
  	sd->internal_ops = &ap1302_subdev_internal_ops;
@@ -852,7 +1027,7 @@ index 96da195c6..c276f9f0b 100644
  
  	ret = media_entity_pads_init(&sd->entity, ARRAY_SIZE(ap1302->pads),
  				     ap1302->pads);
-@@ -2699,7 +2634,7 @@ static int ap1302_parse_of(struct ap1302_device *ap1302)
+@@ -2699,7 +2637,7 @@ static int ap1302_parse_of(struct ap1302_device *ap1302)
  	int ret;
  
  	/* Clock */
@@ -861,7 +1036,7 @@ index 96da195c6..c276f9f0b 100644
  	if (IS_ERR(ap1302->clock)) {
  		dev_err(ap1302->dev, "Failed to get clock: %ld\n",
  			PTR_ERR(ap1302->clock));
-@@ -2723,7 +2658,26 @@ static int ap1302_parse_of(struct ap1302_device *ap1302)
+@@ -2723,7 +2661,26 @@ static int ap1302_parse_of(struct ap1302_device *ap1302)
  		return PTR_ERR(ap1302->standby_gpio);
  	}
  
@@ -889,7 +1064,7 @@ index 96da195c6..c276f9f0b 100644
  	ep = fwnode_graph_get_next_endpoint(dev_fwnode(ap1302->dev), NULL);
  	if (!ep)
  		return -EINVAL;
-@@ -2785,7 +2739,6 @@ static int ap1302_parse_of(struct ap1302_device *ap1302)
+@@ -2785,7 +2742,6 @@ static int ap1302_parse_of(struct ap1302_device *ap1302)
  	}
  
  	ap1302->width_factor = num_sensors;
@@ -897,7 +1072,7 @@ index 96da195c6..c276f9f0b 100644
  done:
  	of_node_put(sensors);
  	return ret;
-@@ -2812,7 +2765,6 @@ static void ap1302_cleanup(struct ap1302_device *ap1302)
+@@ -2812,7 +2768,6 @@ static void ap1302_cleanup(struct ap1302_device *ap1302)
  static int ap1302_probe(struct i2c_client *client, const struct i2c_device_id *id)
  {
  	struct ap1302_device *ap1302;
@@ -905,7 +1080,7 @@ index 96da195c6..c276f9f0b 100644
  	int ret;
  
  	ap1302 = devm_kzalloc(&client->dev, sizeof(*ap1302), GFP_KERNEL);
-@@ -2844,17 +2796,8 @@ static int ap1302_probe(struct i2c_client *client, const struct i2c_device_id *i
+@@ -2844,17 +2799,8 @@ static int ap1302_probe(struct i2c_client *client, const struct i2c_device_id *i
  	if (ret < 0)
  		goto error;
  

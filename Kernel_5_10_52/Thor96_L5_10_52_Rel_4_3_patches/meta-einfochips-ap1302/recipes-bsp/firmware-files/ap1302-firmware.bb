@@ -6,6 +6,7 @@ LICENSE = "CLOSED"
 
 SRC_URI = "file://lib/firmware/ap1302_ar0430_fw.bin \
 	   file://lib/firmware/ap1302_arx3a0_fw.bin \
+	   file://lib/firmware/ap1302_ar1335_fw.bin \
 		"
 do_install() {
     install -d ${D}${base_libdir}/firmware/
@@ -14,3 +15,4 @@ do_install() {
 
 FILES_${PN} += "${base_libdir}/firmware/ap1302_ar0430_fw.bin"
 FILES_${PN} += "${base_libdir}/firmware/ap1302_arx3a0_fw.bin"
+FILES_${PN} += "${base_libdir}/firmware/ap1302_ar1335_fw.bin"

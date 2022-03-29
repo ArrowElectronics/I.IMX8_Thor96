@@ -1,7 +1,7 @@
-From 3d73659dee059d7b1f86133ad8fcda4c9c72c210 Mon Sep 17 00:00:00 2001
+From 682e42ea6d921281909d1168a29f41a5325d5998 Mon Sep 17 00:00:00 2001
 From: Satish Kumar Nagireddy <satish.nagireddy.nagireddy@xilinx.com>
 Date: Tue, 16 Nov 2021 17:56:07 +0530
-Subject: [PATCH 02/13] media-bus: uapi: Add YCrCb 420 media bus format and rst
+Subject: [PATCH 02/10] media-bus: uapi: Add YCrCb 420 media bus format and rst
 
 This commit adds YUV 420 media bus format. VYYUYY8_1X24
 is an approximate way to descrive the pixels sent over

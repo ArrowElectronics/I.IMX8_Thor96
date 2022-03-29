@@ -1,7 +1,7 @@
-From c1475a12e594184dda7af1719c4fa4443b11cd0c Mon Sep 17 00:00:00 2001
+From 78e1bc09d625b4b03556bd95079ecb96dd3015bb Mon Sep 17 00:00:00 2001
 From: Sakari Ailus <sakari.ailus@linux.intel.com>
 Date: Thu, 17 Dec 2020 19:27:08 +0100
-Subject: [PATCH 01/13] media: uapi: Add an entity type for Image Signal
+Subject: [PATCH 01/10] media: uapi: Add an entity type for Image Signal
  Processors
 
 Add and document a media entity type for Image Signal Processor devices.

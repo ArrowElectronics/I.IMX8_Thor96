@@ -1,7 +1,7 @@
-From 8ed988a83d8d0ff8265084e7fc00878609502050 Mon Sep 17 00:00:00 2001
+From a57846817d9f66c78148ace28c1d25eee2809a1c Mon Sep 17 00:00:00 2001
 From: Anil Kumar Mamidala <anil.mamidala@xilinx.com>
 Date: Tue, 16 Nov 2021 17:23:21 +0530
-Subject: [PATCH 04/13] media: dt-bindings: media: i2c: Add bindings for AP1302
+Subject: [PATCH 04/10] media: dt-bindings: media: i2c: Add bindings for AP1302
 
 The AP1302 is a standalone ISP for ON Semiconductor sensors.
 Add corresponding DT bindings.

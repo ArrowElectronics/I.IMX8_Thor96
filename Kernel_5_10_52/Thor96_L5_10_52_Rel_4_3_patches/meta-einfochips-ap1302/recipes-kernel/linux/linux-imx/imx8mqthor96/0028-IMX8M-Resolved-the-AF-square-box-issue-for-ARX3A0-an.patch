@@ -1,0 +1,77 @@
+From a2e9895eae13f98f4a5a27200b25dc9751311a4f Mon Sep 17 00:00:00 2001
+From: Tanvi Chauhan <tanvi.chauhan@einfochips.com>
+Date: Fri, 25 Mar 2022 14:48:35 +0530
+Subject: [PATCH 1/1] IMX8M: Resolved the AF square box issue for ARX3A0 and
+ AR0430
+
+Implement the Auto focus for AR1335 camera module, but there is
+an issue with ARX3A0 and AR0430 camera sensor module. while in live
+streaming, AF square frame is coming.
+
+Change-Id: Iffc195c7ad552d09bc0461560dc313826b53e865
+Signed-off-by: Tanvi Chauhan <tanvi.chauhan@einfochips.com>
+---
+ drivers/media/i2c/ap1302.c | 40 ++++++++++++++++++++------------------
+ 1 file changed, 21 insertions(+), 19 deletions(-)
+
+diff --git a/drivers/media/i2c/ap1302.c b/drivers/media/i2c/ap1302.c
+index 4bb5bee3b..f86731300 100644
+--- a/drivers/media/i2c/ap1302.c
++++ b/drivers/media/i2c/ap1302.c
+@@ -1712,32 +1712,34 @@ static int ap1302_get_ctrls(struct ap1302_device *ap1302)
+ 	val = (val != AP1302_AWB_CTRL_MODE_AUTO)? AWB_MODE_0 : AWB_MODE_1;
+ 	ap1302_ctrls[AP1302_CTRL_WB].def = val;
+ 
+-	/* get the Auto focus mode value form AP1302 */
+-	val = 0x00000000;
+-	ret = ap1302_read(ap1302, AP1302_AF_CTRL, &val);
++	if (!strcmp(ap1302->sensor_info->model, AR1335_MODEL)) {
+ 
+-	if (ret < 0)
+-	        return ret;
++		/* get the Auto focus mode value form AP1302 */
++		val = 0x00000000;
++		ret = ap1302_read(ap1302, AP1302_AF_CTRL, &val);
+ 
+-	if ((val & AP1302_AF_CTRL_MODE_MASK) != AP1302_AF_CTRL_MODE_CONTINUOUS) {
+-		val &= ~AP1302_AF_CTRL_MODE_MASK;
+-		val |= AP1302_AF_CTRL_MODE_CONTINUOUS;
+-		ret = ap1302_write(ap1302, AP1302_AF_CTRL, val, NULL);
+ 		if (ret < 0)
+-			return ret;
+-	}
+-	ap1302_ctrls_addon[AP1302_CTRL_AF_MODE].def = AF_MODE_1;
+-	ap1302->v4l2_ctrl_af_manual_mode = false;
++		        return ret;
+ 
+-	/* get the Auto focus absolute value form AP1302 */
+-	val = 0x00000000;
+-	ret = ap1302_read(ap1302, AP1302_ABSOLUTE_AF_CTRL, &val);
++		if ((val & AP1302_AF_CTRL_MODE_MASK) != AP1302_AF_CTRL_MODE_CONTINUOUS) {
++			val &= ~AP1302_AF_CTRL_MODE_MASK;
++			val |= AP1302_AF_CTRL_MODE_CONTINUOUS;
++			ret = ap1302_write(ap1302, AP1302_AF_CTRL, val, NULL);
++			if (ret < 0)
++				return ret;
++		}
++		ap1302_ctrls_addon[AP1302_CTRL_AF_MODE].def = AF_MODE_1;
++		ap1302->v4l2_ctrl_af_manual_mode = false;
+ 
+-	if (ret < 0)
+-	        return ret;
++		/* get the Auto focus absolute value form AP1302 */
++		val = 0x00000000;
++		ret = ap1302_read(ap1302, AP1302_ABSOLUTE_AF_CTRL, &val);
+ 
+-	ap1302_ctrls_addon[AP1302_CTRL_AF_ABS].def = val;
++		if (ret < 0)
++		        return ret;
+ 
++		ap1302_ctrls_addon[AP1302_CTRL_AF_ABS].def = val;
++	}
+ 	return ret;
+ }
+ 
+-- 
+2.17.1
+

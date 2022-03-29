@@ -1,7 +1,7 @@
-From fd19d03531a329ca91e8828bef3ed9973d9a03fd Mon Sep 17 00:00:00 2001
+From ffb84f97cae12f2360ece37cac10ad03a5d7ac6a Mon Sep 17 00:00:00 2001
 From: Deepak Rathore <deepak.rathore@einfochips.com>
 Date: Wed, 9 Feb 2022 14:37:41 +0530
-Subject: [PATCH 13/13] IMX8M: Added v4l2 control support in Thor96
+Subject: [PATCH 08/10] IMX8M: Added v4l2 control support in Thor96
 
 - Added changes to support for v4l2 controls in thor96
 
