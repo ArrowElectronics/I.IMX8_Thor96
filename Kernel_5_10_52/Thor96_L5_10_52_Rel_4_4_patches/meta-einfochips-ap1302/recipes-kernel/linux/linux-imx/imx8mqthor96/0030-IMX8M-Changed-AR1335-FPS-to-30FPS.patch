@@ -1,0 +1,23 @@
+From 6114be6dfb26c8f00fa30dcc9d594be44e7cca87 Mon Sep 17 00:00:00 2001
+From: Deepak Rathore <deepak.rathore@einfochips.com>
+Date: Tue, 10 May 2022 13:39:46 +0530
+Subject: [PATCH] IMX8M: Changed AR1335 FPS to 30FPS
+
+Signed-off-by: Deepak Rathore <deepak.rathore@einfochips.com>
+
+diff --git a/drivers/media/i2c/ap1302.c b/drivers/media/i2c/ap1302.c
+index 469d12db9..d579594d2 100644
+--- a/drivers/media/i2c/ap1302.c
++++ b/drivers/media/i2c/ap1302.c
+@@ -569,7 +569,7 @@ static const struct ap1302_sensor_info ap1302_sensor_info[] = {
+ 		.name = "ar1335",
+ 		.i2c_addr = 0x36,
+ 		.resolution = { 4208, 3120 },
+-		.fps = 10,
++		.fps = 30,
+ 		.format = MEDIA_BUS_FMT_UYVY8_2X8,
+ 		.supplies = (const struct ap1302_sensor_supply[]) {
+ 			{ "vaa", 0 },
+-- 
+2.17.1
+

@@ -17,4 +17,6 @@ SRC_URI_append_imx8mqthor96 += "file://0017-media-uapi-Add-an-entity-type-for-Im
 					file://0026-IMX8M-Added-support-for-AR1335-camera-sensor.patch \
 					file://0027-IMX8M-Added-auto-focus-feature-support.patch \
 					file://0028-IMX8M-Resolved-the-AF-square-box-issue-for-ARX3A0-an.patch \
+					file://0029-IMX8M-Added-changes-to-make-Auto-Focus-functionality.patch \
+					file://0030-IMX8M-Changed-AR1335-FPS-to-30FPS.patch \
 		"

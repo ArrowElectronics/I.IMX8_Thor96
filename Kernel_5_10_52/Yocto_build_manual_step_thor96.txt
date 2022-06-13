@@ -48,21 +48,21 @@ $ cp -r $SOURCE_DIR/ML-data-models/ARROW_DEMOS/face_recognition/* $SOURCE_DIR/me
 $ cp -r $SOURCE_DIR/ML-data-models/ARROW_DEMOS/real-time-object-detection/* $SOURCE_DIR/meta-einfochips/recipes-extended/ml-sdk/files/ARROW_DEMOS/real-time-object-detection/
 $ cp -r $SOURCE_DIR/ML-data-models/ARROW_DEMOS/TFLite-armnn/handwritten_char_rec_demo/* $SOURCE_DIR/meta-einfochips/recipes-extended/ml-sdk/files/ARROW_DEMOS/TFLite-armnn/handwritten_char_rec_demo/
 
-$ cp -r ../../Thor96_L5_10_52_Rel_4_3_patches/meta-quectel-community/ .
+$ cp -r ../../Thor96_L5_10_52_Rel_4_4_patches/meta-quectel-community/ .
 
-$ cp -r ../../Thor96_L5_10_52_Rel_4_3_patches/meta-einfochips-ap1302/ .
+$ cp -r ../../Thor96_L5_10_52_Rel_4_4_patches/meta-einfochips-ap1302/ .
 
 $ cd meta-imx/
 
-$ git am ../../../Thor96_L5_10_52_Rel_4_3_patches/meta-imx-patch/000*
+$ git am ../../../Thor96_L5_10_52_Rel_4_4_patches/meta-imx-patch/000*
 
 $ cd ../meta-openembedded
 
-$ git am ../../../Thor96_L5_10_52_Rel_4_3_patches/meta-openembedded-patch/000*
+$ git am ../../../Thor96_L5_10_52_Rel_4_4_patches/meta-openembedded-patch/000*
 
 $ cd ../meta-browser
 
-$ git am ../../../Thor96_L5_10_52_Rel_4_3_patches/meta-browser-patch/000*
+$ git am ../../../Thor96_L5_10_52_Rel_4_4_patches/meta-browser-patch/000*
 $ cd ../../
 
 ################### Start build the firmware image ############################
