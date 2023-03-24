@@ -1,0 +1,23 @@
+From 239f710e7365976a69b38c41df0748c9e1daf571 Mon Sep 17 00:00:00 2001
+From: Deepak Rathore <deepak.rathore@einfochips.com>
+Date: Fri, 24 Mar 2023 16:25:06 +0530
+Subject: [PATCH] qt5-git: Fix compilation issue of QT package
+
+Signed-off-by: Deepak Rathore <deepak.rathore@einfochips.com>
+
+diff --git a/recipes-qt/qt5/qt5-git.inc b/recipes-qt/qt5/qt5-git.inc
+index f1d724d..882a99c 100644
+--- a/recipes-qt/qt5/qt5-git.inc
++++ b/recipes-qt/qt5/qt5-git.inc
+@@ -7,7 +7,7 @@ QT_MODULE_BRANCH_PARAM ?= "branch=${QT_MODULE_BRANCH}"
+ 
+ # each module needs to define valid SRCREV
+ SRC_URI = " \
+-    ${QT_GIT}/${QT_MODULE}.git;name=${QT_MODULE};${QT_MODULE_BRANCH_PARAM};protocol=${QT_GIT_PROTOCOL} \
++    ${QT_GIT}/${QT_MODULE}.git;name=${QT_MODULE};${QT_MODULE_BRANCH_PARAM};protocol=${QT_GIT_PROTOCOL};nobranch=1 \
+ "
+ 
+ CVE_PRODUCT = "qt"
+-- 
+2.17.1
+

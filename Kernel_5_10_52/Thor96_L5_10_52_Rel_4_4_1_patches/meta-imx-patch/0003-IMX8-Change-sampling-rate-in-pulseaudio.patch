@@ -1,7 +1,7 @@
-From bee225ae2244ed78bae0e845b33094cf68c0d769 Mon Sep 17 00:00:00 2001
+From abd2a8930ca94dc54021e8394a23b09a871df62e Mon Sep 17 00:00:00 2001
 From: Deepak Rathore <deepak.rathore@einfochips.com>
 Date: Tue, 16 Nov 2021 14:20:59 +0530
-Subject: [PATCH 3/3] IMX8: Change sampling rate in pulseaudio
+Subject: [PATCH 3/5] IMX8: Change sampling rate in pulseaudio
 
 Signed-off-by: Deepak Rathore <deepak.rathore@einfochips.com>
 

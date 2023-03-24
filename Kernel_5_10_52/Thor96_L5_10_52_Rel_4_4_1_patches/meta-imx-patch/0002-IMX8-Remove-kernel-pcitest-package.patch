@@ -1,7 +1,7 @@
-From 08e823bb35359565acf8267a52fd1abe2db961ce Mon Sep 17 00:00:00 2001
+From d8eadae4a9d61f83efa2b1e0fe8e055dda7cad79 Mon Sep 17 00:00:00 2001
 From: Deepak Rathore <deepak.rathore@einfochips.com>
 Date: Tue, 16 Nov 2021 14:19:59 +0530
-Subject: [PATCH 2/3] IMX8: Remove kernel-pcitest package
+Subject: [PATCH 2/5] IMX8: Remove kernel-pcitest package
 
 Signed-off-by: Deepak Rathore <deepak.rathore@einfochips.com>
 

@@ -1,13 +1,10 @@
-From ed2179f345d9a78c5d6c40ceb77cf8bc2a5073ec Mon Sep 17 00:00:00 2001
+From 8414ffd8dcd310616ec4f0eb6fdd4d06d15f11db Mon Sep 17 00:00:00 2001
 From: Tanvi Chauhan <tanvi.chauhan@einfochips.com>
 Date: Thu, 10 Feb 2022 12:34:21 +0530
-Subject: [PATCH 1/1] setup: meta-einfochips-ap1302 layer is added for AP1302
+Subject: [PATCH 4/5] setup: meta-einfochips-ap1302 layer is added for AP1302
 
 append new mete-einfochips-layer to support AP1302 interface
 with thor96 board
----
- tools/imx-setup-release.sh | 3 +++
- 1 file changed, 3 insertions(+)
 
 diff --git a/tools/imx-setup-release.sh b/tools/imx-setup-release.sh
 index 812c99c60..aaa7e7873 100755
