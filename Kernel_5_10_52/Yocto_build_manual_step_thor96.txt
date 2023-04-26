@@ -48,21 +48,21 @@ $ cp -r $SOURCE_DIR/ML-data-models/ARROW_DEMOS/face_recognition/* $SOURCE_DIR/me
 $ cp -r $SOURCE_DIR/ML-data-models/ARROW_DEMOS/real-time-object-detection/* $SOURCE_DIR/meta-einfochips/recipes-extended/ml-sdk/files/ARROW_DEMOS/real-time-object-detection/
 $ cp -r $SOURCE_DIR/ML-data-models/ARROW_DEMOS/TFLite-armnn/handwritten_char_rec_demo/* $SOURCE_DIR/meta-einfochips/recipes-extended/ml-sdk/files/ARROW_DEMOS/TFLite-armnn/handwritten_char_rec_demo/
 
-$ cp -r ../../Thor96_L5_10_52_Rel_4_4_1_patches/meta-quectel-community/ .
+$ cp -r ../../Thor96_L5_10_52_Rel_4_5_patches/meta-quectel-community/ .
 
-$ cp -r ../../Thor96_L5_10_52_Rel_4_4_1_patches/meta-einfochips-ap1302/ .
+$ cp -r ../../Thor96_L5_10_52_Rel_4_5_patches/meta-einfochips-ap1302/ .
 
 $ cd meta-imx/
-$ git am ../../../Thor96_L5_10_52_Rel_4_4_1_patches/meta-imx-patch/000*
+$ git am ../../../Thor96_L5_10_52_Rel_4_5_patches/meta-imx-patch/000*
 
 $ cd meta-qt5/
-$ git am ../../../Thor96_L5_10_52_Rel_4_4_1_patches/meta-qt5-patch/000*
+$ git am ../../../Thor96_L5_10_52_Rel_4_5_patches/meta-qt5-patch/000*
 
 $ cd ../meta-openembedded
-$ git am ../../../Thor96_L5_10_52_Rel_4_4_1_patches/meta-openembedded-patch/000*
+$ git am ../../../Thor96_L5_10_52_Rel_4_5_patches/meta-openembedded-patch/000*
 
 $ cd ../meta-browser
-$ git am ../../../Thor96_L5_10_52_Rel_4_4_1_patches/meta-browser-patch/000*
+$ git am ../../../Thor96_L5_10_52_Rel_4_5_patches/meta-browser-patch/000*
 $ cd ../../
 
 ################### Start build the firmware image ############################
@@ -71,6 +71,14 @@ $ EULA=1 DISTRO=fsl-imx-xwayland MACHINE=imx8mqthor96 source imx-setup-release.s
 
 - Build firmware image it will take ~10 hours to download all packages and build, time may vary base on your HOST PC configurations
 $ bitbake -v imx-image-full
+
+# During full build, sometimes following packages failed to build. Please manually compile pacakge and re-run the full build:
+- vulkan
+- gcc
+- renderdoc
+- onnxruntime
+- tvm
+- python3-dlib
 
 - After complete execution of the above command it generate firmawre image(imx-image-full-imx8mqthor96.wic.bz2) at below location
 fw path: imx-yocto-bsp/build-xwayland-thor96/tmp/deploy/images/imx8mtho96/

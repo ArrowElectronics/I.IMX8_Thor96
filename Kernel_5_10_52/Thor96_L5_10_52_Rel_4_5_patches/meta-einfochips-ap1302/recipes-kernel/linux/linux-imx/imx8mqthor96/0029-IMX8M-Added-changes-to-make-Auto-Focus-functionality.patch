@@ -1,15 +1,21 @@
-From 112940df9a08e25eaab2dc5d263cfdcdd90b06d5 Mon Sep 17 00:00:00 2001
+From 1d65588d5069cf11b9ad27ab5670575f47bb0b31 Mon Sep 17 00:00:00 2001
 From: Deepak Rathore <deepak.rathore@einfochips.com>
-Date: Mon, 9 May 2022 17:42:51 +0530
-Subject: [PATCH] IMX8M: Added changes to make Auto Focus functionality working
+Date: Wed, 11 May 2022 12:22:32 +0530
+Subject: [PATCH 1/3] IMX8M: Added changes to make Auto Focus functionality
+ working
 
 - Set Actuator absolute milisecond time to 5ms
 - Initialise actuator controls ACT_CTRL_0 and ACT_CTRL_1 values
+- Changed AR1335 FPS to 30FPS
 
+Change-Id: I4ab2b6ef90cde3fce0536373f1c372fd067ae1c6
 Signed-off-by: Deepak Rathore <deepak.rathore@einfochips.com>
+---
+ drivers/media/i2c/ap1302.c | 19 ++++++++++++++++++-
+ 1 file changed, 18 insertions(+), 1 deletion(-)
 
 diff --git a/drivers/media/i2c/ap1302.c b/drivers/media/i2c/ap1302.c
-index f86731300..469d12db9 100644
+index f86731300..245b0ee1f 100644
 --- a/drivers/media/i2c/ap1302.c
 +++ b/drivers/media/i2c/ap1302.c
 @@ -388,6 +388,9 @@
@@ -22,16 +28,31 @@ index f86731300..469d12db9 100644
  
  struct ap1302_device;
  
-@@ -2553,6 +2556,14 @@ static int ap1302_load_firmware(struct ap1302_device *ap1302)
+@@ -566,7 +569,7 @@ static const struct ap1302_sensor_info ap1302_sensor_info[] = {
+ 		.name = "ar1335",
+ 		.i2c_addr = 0x36,
+ 		.resolution = { 4208, 3120 },
+-		.fps = 10,
++		.fps = 30,
+ 		.format = MEDIA_BUS_FMT_UYVY8_2X8,
+ 		.supplies = (const struct ap1302_sensor_supply[]) {
+ 			{ "vaa", 0 },
+@@ -2553,6 +2556,20 @@ static int ap1302_load_firmware(struct ap1302_device *ap1302)
  	 * PIPE FREQ = 112 MHZ (564 from PLL0 /5) */
  	ap1302_write(ap1302, AP1302_PREVIEW_DIV_IPIPE, 0x00010008, NULL);
  
 +	if (!strcmp(ap1302->sensor_info->model, AR1335_MODEL)) {
 +		/* Set Actuator absolute milisecond time to 5ms */
-+		ap1302_write(ap1302, ACT_ABS_MTIME, 0x00001388, NULL);
++		ret = ap1302_write(ap1302, ACT_ABS_MTIME, 0x00001388, NULL);
++		if(ret)
++			return ret;
 +		/* Initialise Actuator controls */
-+		ap1302_write(ap1302, ACT_CTRL_0, 0x00004C00, NULL);
-+		ap1302_write(ap1302, ACT_CTRL_1, 0x00000110, NULL);
++		ret = ap1302_write(ap1302, ACT_CTRL_0, 0x00004C00, NULL);
++		if(ret)
++			return ret;
++		ret = ap1302_write(ap1302, ACT_CTRL_1, 0x00000110, NULL);
++		if(ret)
++			return ret;
 +	}
 +
  	/* Check again if PLL is locked aftaer adjusting Host interface MIPI data rate of AP1302 */

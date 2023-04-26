@@ -16,10 +16,10 @@ green=`tput setaf 2`
 bold=`tput bold`
 reset=`tput sgr0`
 
-meta_qt5_head=a00af3eae082b772469d9dd21b2371dd4d237684
-meta_imx_head=426311a3f4e6936125c0599a34d8f6133dd2460d
-meta_openembedded_head=5a4b2ab29d38c02535f24d5308cc40615739f557
-meta_browser_head=8be1d3a0ba0cf32e61144900597207af5698c10d
+#meta_qt5_head=a00af3eae082b772469d9dd21b2371dd4d237684
+#meta_imx_head=426311a3f4e6936125c0599a34d8f6133dd2460d
+#meta_openembedded_head=5a4b2ab29d38c02535f24d5308cc40615739f557
+#meta_browser_head=8be1d3a0ba0cf32e61144900597207af5698c10d
 
 # Required packages to build
 # Install all the required build HOST packages
@@ -82,7 +82,7 @@ download_imx_repo()
 		echo "###################################################################################"
 		echo "Download the yocto repo"
 		echo "###################################################################################"
-		repo init -u https://source.codeaurora.org/external/imx/imx-manifest -b imx-linux-hardknott -m imx-5.10.52-2.1.0.xml
+		repo init -u https://github.com/nxp-imx/imx-manifest  -b imx-linux-hardknott -m imx-5.10.52-2.1.0.xml
 		echo "###################################################################################"
 		echo "Sync downloaded repo. Please wait..."
 		echo "###################################################################################"
@@ -148,12 +148,12 @@ apply_patch()
 
 	if [ ! -d meta-quectel-community ]
 	then
-		cp -r $YOCTO_DIR/Thor96_L5_10_52_Rel_4_4_1_patches/meta-quectel-community/ .
+		cp -r $YOCTO_DIR/Thor96_L5_10_52_Rel_4_5_patches/meta-quectel-community/ .
 		if [ $? -ne 0 ]
 		then
 			echo "###################################################################################"
 			echo "${red}Error during apply the patch in meta-quectel-community"
-			echo "Please verify Thor96_L5_10_52_Rel_4_4_1_patches directory${reset}"
+			echo "Please verify Thor96_L5_10_52_Rel_4_5_patches directory${reset}"
 			echo "###################################################################################"
 			exit 1
 		fi
@@ -161,12 +161,12 @@ apply_patch()
 
         if [ ! -d meta-einfochips-ap1302 ]
         then
-                cp -r $YOCTO_DIR/Thor96_L5_10_52_Rel_4_4_1_patches/meta-einfochips-ap1302/ .
+                cp -r $YOCTO_DIR/Thor96_L5_10_52_Rel_4_5_patches/meta-einfochips-ap1302/ .
                 if [ $? -ne 0 ]
                 then
                         echo "###################################################################################"
                         echo "${red}Error during apply the patch in meta-einfochips-ap1302"
-                        echo "Please verify Thor96_L5_10_52_Rel_4_4_1_patches directory${reset}"
+                        echo "Please verify Thor96_L5_10_52_Rel_4_5_patches directory${reset}"
                         echo "###################################################################################"
                         exit 1
                 fi
@@ -174,19 +174,19 @@ apply_patch()
 
 	# Apply patches
 	cd $SOURCE_DIR/meta-imx/
-	git apply --check -R $YOCTO_DIR/Thor96_L5_10_52_Rel_4_4_1_patches/meta-imx-patch/00* 2>/dev/null
+	git apply --check -R $YOCTO_DIR/Thor96_L5_10_52_Rel_4_5_patches/meta-imx-patch/00* 2>/dev/null
 	if [ $? -ne 0 ]
 	then
 		echo "###################################################################################"
 		echo "Apply the patch in meta-imx"
 		echo "###################################################################################"
-		git checkout -f $meta_imx_head
-		git am --whitespace=fix $YOCTO_DIR/Thor96_L5_10_52_Rel_4_4_1_patches/meta-imx-patch/00*
+		#git checkout -f $meta_imx_head
+		git am --whitespace=fix $YOCTO_DIR/Thor96_L5_10_52_Rel_4_5_patches/meta-imx-patch/00*
 		if [ $? -ne 0 ]
 		then
 			echo "###################################################################################"
 			echo "${red}Error during apply the patch in meta-imx"
-			echo "Please verify Thor96_L5_10_52_Rel_4_4_1_patches directory${reset}"
+			echo "Please verify Thor96_L5_10_52_Rel_4_5_patches directory${reset}"
 			echo "###################################################################################"
 			git format-patch $meta_imx_head
 			exit 1
@@ -195,19 +195,19 @@ apply_patch()
 
 	# Apply patches
 	cd $SOURCE_DIR/meta-qt5/
-	git apply --check -R $YOCTO_DIR/Thor96_L5_10_52_Rel_4_4_1_patches/meta-qt5-patch/00* 2>/dev/null
+	git apply --check -R $YOCTO_DIR/Thor96_L5_10_52_Rel_4_5_patches/meta-qt5-patch/00* 2>/dev/null
 	if [ $? -ne 0 ]
 	then
 		echo "###################################################################################"
 		echo "Apply the patch in meta-qt5"
 		echo "###################################################################################"
-		git checkout -f $meta_qt5_head
-		git am --whitespace=fix $YOCTO_DIR/Thor96_L5_10_52_Rel_4_4_1_patches/meta-qt5-patch/00*
+		#git checkout -f $meta_qt5_head
+		git am --whitespace=fix $YOCTO_DIR/Thor96_L5_10_52_Rel_4_5_patches/meta-qt5-patch/00*
 		if [ $? -ne 0 ]
 		then
 			echo "###################################################################################"
 			echo "${red}Error during apply the patch in meta-qt5"
-			echo "Please verify Thor96_L5_10_52_Rel_4_4_1_patches directory${reset}"
+			echo "Please verify Thor96_L5_10_52_Rel_4_5_patches directory${reset}"
 			echo "###################################################################################"
 			git format-patch $meta_qt5_head
 			exit 1
@@ -215,19 +215,19 @@ apply_patch()
 	fi
 
 	cd $SOURCE_DIR/meta-openembedded
-	git apply --check -R $YOCTO_DIR/Thor96_L5_10_52_Rel_4_4_1_patches/meta-openembedded-patch/00* 2>/dev/null
+	git apply --check -R $YOCTO_DIR/Thor96_L5_10_52_Rel_4_5_patches/meta-openembedded-patch/00* 2>/dev/null
 	if [ $? -ne 0 ]
 	then
 		echo "###################################################################################"
 		echo "Apply the patch in meta-openembedded"
 		echo "###################################################################################"
-		git checkout -f $meta_openembedded_head
-		git am --whitespace=fix $YOCTO_DIR/Thor96_L5_10_52_Rel_4_4_1_patches/meta-openembedded-patch/00* 2>/dev/null
+		#git checkout -f $meta_openembedded_head
+		git am --whitespace=fix $YOCTO_DIR/Thor96_L5_10_52_Rel_4_5_patches/meta-openembedded-patch/00* 2>/dev/null
 		if [ $? -ne 0 ]
 		then
 			echo "###################################################################################"
 			echo "${red}Error during apply the patch in meta-openembedded"
-			echo "Please verify Thor96_L5_10_52_Rel_4_4_1_patches directory${reset}"
+			echo "Please verify Thor96_L5_10_52_Rel_4_5_patches directory${reset}"
 			echo "###################################################################################"
 			git format-patch $meta_openembedded_head
 			exit 1
@@ -235,19 +235,19 @@ apply_patch()
 	fi
 
 	cd $SOURCE_DIR/meta-browser
-	git apply --check -R $YOCTO_DIR/Thor96_L5_10_52_Rel_4_4_1_patches/meta-browser-patch/00* 2>/dev/null
+	git apply --check -R $YOCTO_DIR/Thor96_L5_10_52_Rel_4_5_patches/meta-browser-patch/00* 2>/dev/null
 	if [ $? -ne 0 ]
 	then
 		echo "###################################################################################"
 		echo "Apply the patch in meta-browser"
 		echo "###################################################################################"
-		git checkout -f $meta_browser_head
-		git am --whitespace=fix $YOCTO_DIR/Thor96_L5_10_52_Rel_4_4_1_patches/meta-browser-patch/00*
+		#git checkout -f $meta_browser_head
+		git am --whitespace=fix $YOCTO_DIR/Thor96_L5_10_52_Rel_4_5_patches/meta-browser-patch/00*
 		if [ $? -ne 0 ]
 		then
 			echo "###################################################################################"
 			echo "${red}Error during apply the patch in meta-browser"
-			echo "Please verify Thor96_L5_10_52_Rel_4_4_1_patches directory${reset}"
+			echo "Please verify Thor96_L5_10_52_Rel_4_5_patches directory${reset}"
 			echo "###################################################################################"
 			git format-patch $meta_browser_head
 			exit 1

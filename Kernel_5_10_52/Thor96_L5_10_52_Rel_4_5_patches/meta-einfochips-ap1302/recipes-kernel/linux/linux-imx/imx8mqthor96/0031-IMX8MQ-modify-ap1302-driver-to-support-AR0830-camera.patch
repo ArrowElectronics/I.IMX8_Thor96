@@ -1,0 +1,472 @@
+From 13c2a2d9a8cca4e593697f3b6caaa5d007f2f4b4 Mon Sep 17 00:00:00 2001
+From: Deepak Rathore <deepak.rathore@einfochips.com>
+Date: Mon, 24 Apr 2023 14:36:00 +0530
+Subject: [PATCH 3/3] IMX8MQ: modify ap1302 driver to support AR0830 camera
+ sensor
+
+    - AR0830 camera sensor supports firmware bin version 433 which
+      supports new firmware loading method so modified ap1302 driver
+      accordingly
+    - Adapting the changes to support new firmware loading process
+      with upstream driver:
+      (https://github.com/Avnet/ap1302-driver/blob/master/kmod/ap1302.c)
+    - Set link frequency AP1302_HINF_MIPI_FREQ 448Mhz and
+      SYSTEM_FREQ_IN 48Mhz
+
+Change-Id: I7747d2477e96e92ced5aae4f9f1cfb1633f394fa
+Signed-off-by: Deepak Rathore <deepak.rathore@einfochips.com>
+---
+ drivers/media/i2c/ap1302.c | 378 ++++++++++++++++++++++++++++---------
+ 1 file changed, 284 insertions(+), 94 deletions(-)
+
+diff --git a/drivers/media/i2c/ap1302.c b/drivers/media/i2c/ap1302.c
+index b9b6d9bb1..bb76e1af7 100644
+--- a/drivers/media/i2c/ap1302.c
++++ b/drivers/media/i2c/ap1302.c
+@@ -172,6 +172,7 @@
+ #define AP1302_PREVIEW_HINF_CTRL_MIPI_MODE	BIT(3)
+ #define AP1302_PREVIEW_HINF_CTRL_MIPI_LANES(n)	((n) << 0)
+ #define AP1302_SYSTEM_FREQ_IN		AP1302_REG_32BIT(0x6024)
++#define AP1302_HINF_MIPI_FREQ_TGT	AP1302_REG_32BIT(0x6034)
+ #define AP1302_SIPM_FREQ		AP1302_REG_32BIT(0x6028)
+ #define AP1302_PLL_0_DIV		AP1302_REG_32BIT(0x602C)
+ #define AP1302_PLL_1_DIV		AP1302_REG_32BIT(0x6038)
+@@ -286,6 +287,7 @@
+ #define AP1302_SYS_START_STALL_MODE_FRAME	(0U << 6)
+ #define AP1302_SYS_START_STALL_MODE_DISABLED	(1U << 6)
+ #define AP1302_SYS_START_STALL_MODE_POWER_DOWN	(2U << 6)
++#define AP1302_SYS_START_STALL_MODE_STANDBY_SENSOR_OFF (3U << 6)
+ #define AP1302_SYS_START_GO			BIT(4)
+ #define AP1302_SYS_START_PATCH_FUN		BIT(1)
+ #define AP1302_SYS_START_PLL_INIT		BIT(0)
+@@ -493,6 +495,8 @@ struct ap1302_device {
+ 		u32 sipm_addr;
+ 		u32 reg_addr;
+ 	} debugfs;
++
++	bool stall_standby;
+ };
+ 
+ static inline struct ap1302_device *to_ap1302(struct v4l2_subdev *sd)
+@@ -759,6 +763,57 @@ static int ap1302_read(struct ap1302_device *ap1302, u32 reg, u32 *val)
+ 	return __ap1302_read(ap1302, reg, val);
+ }
+ 
++/* Setup for regmap poll */
++static int __ap1302_poll_param(struct ap1302_device *ap1302, u32 reg,
++                struct regmap **regmap,u16 *addr)
++{
++        u32 page = AP1302_REG_PAGE(reg);
++        int ret;
++
++        if (page) {
++                if (ap1302->reg_page != page) {
++                        ret = __ap1302_write(ap1302, AP1302_ADVANCED_BASE,
++                                             page);
++                        if (ret < 0)
++                                return ret;
++
++                        ap1302->reg_page = page;
++                }
++
++                reg &= ~AP1302_REG_PAGE_MASK;
++                reg += AP1302_REG_ADV_START;
++        }
++
++        *addr = AP1302_REG_ADDR(reg);
++
++        switch (AP1302_REG_SIZE(reg)) {
++        case 2:
++                *regmap=ap1302->regmap16;
++                break;
++        case 4:
++                *regmap=ap1302->regmap32;
++                break;
++        default:
++                return -EINVAL;
++        }
++
++        dev_dbg(ap1302->dev, "%s: R0x%08x -> 0x%04x\n", __func__,
++                        reg,*addr);
++
++        return 0;
++}
++
++#define ap1302_poll_timeout(ap1302,reg,val,cond,sleep_us,timeout_us) \
++({ \
++        struct regmap *__regmap; \
++        u16 addr; \
++        int __retpoll; \
++        __retpoll = __ap1302_poll_param(ap1302,reg,&__regmap,&addr); \
++        if (!__retpoll) \
++                __retpoll = regmap_read_poll_timeout(__regmap, addr, val, cond, sleep_us, timeout_us); \
++        __retpoll; \
++})
++
+ /* -----------------------------------------------------------------------------
+  * Sensor Registers Access
+  *
+@@ -1359,35 +1414,98 @@ static int ap1302_configure(struct ap1302_device *ap1302)
+ static int ap1302_stall(struct ap1302_device *ap1302, bool stall)
+ {
+ 	int ret = 0;
++	u32 value;
+ 
+-	if (stall) {
+-		ap1302_write(ap1302, AP1302_SYS_START,
+-			     AP1302_SYS_START_PLL_LOCK |
+-			     AP1302_SYS_START_STALL_MODE_DISABLED, &ret);
+-		ap1302_write(ap1302, AP1302_SYS_START,
+-			     AP1302_SYS_START_PLL_LOCK |
+-			     AP1302_SYS_START_STALL_EN |
+-			     AP1302_SYS_START_STALL_MODE_DISABLED, &ret);
+-		if (ret < 0)
+-			return ret;
++	/* AR0830 firmware bin version 433 change AP1302_SYS_START addressing space
++           so implementating AR0830's stall function separately */
++        if (!strcmp(ap1302->sensor_info->model, AR0830_MODEL)) {
++                ret = ap1302_read(ap1302, AP1302_SYS_START, &value);
++                if (ret < 0)
++                        return ret;
++
++                if ( !! (value & AP1302_SYS_START_STALL_STATUS) == stall ) {
++                        dev_warn(ap1302->dev,
++                                 "Stall status already as requested : %s\n",stall?"stalled":"running");
++                        return 0;
++                }
++
++                if (stall) {
++                        if (ap1302->stall_standby)
++                                dev_info(ap1302->dev,"Standby, sensor shutdown stall mode\n");
++
++                        ap1302_write(ap1302, AP1302_SYS_START,
++                                         AP1302_SYS_START_STALL_EN |
++                                         (ap1302->stall_standby?
++                                                AP1302_SYS_START_STALL_MODE_STANDBY_SENSOR_OFF:
++                                                AP1302_SYS_START_STALL_MODE_DISABLED)
++                                        , &ret);
++                        if (ret < 0)
++                                return ret;
++
++                        /*
++                        * Wait for Stall Status
++                        */
++                        ret = ap1302_poll_timeout(ap1302,AP1302_SYS_START,value,
++                                        value & AP1302_SYS_START_STALL_STATUS,
++                                        10000,5000000);
++                        if (ret) {
++                                dev_err(ap1302->dev,"Stall Failed: %d\n",ret);
++				return ret;
++                        }
++
++                        ap1302->streaming = false;
++                } else {
++                        ap1302->streaming = true;
++
++                        ap1302_write(ap1302, AP1302_SYS_START,
++                                            AP1302_SYS_START_STALL_EN |
++                                            AP1302_SYS_START_STALL_MODE_DISABLED, &ret);
++                        if (ret < 0)
++                                return ret;
++
++                        /*
++                        * Wait for Stall Status
++                        */
++                        ret = ap1302_poll_timeout(ap1302,AP1302_SYS_START,value,
++                                        !(value & AP1302_SYS_START_STALL_STATUS),
++                                        10000,5000000);
++                        if (ret) {
++                                dev_err(ap1302->dev,"Stall Failed: %d\n",ret);
++                                return ret;
++                        }
++                }
++                return 0;
++        }
++        else {
++		if (stall) {
++			ap1302_write(ap1302, AP1302_SYS_START,
++					AP1302_SYS_START_PLL_LOCK |
++					AP1302_SYS_START_STALL_MODE_DISABLED, &ret);
++			ap1302_write(ap1302, AP1302_SYS_START,
++					AP1302_SYS_START_PLL_LOCK |
++					AP1302_SYS_START_STALL_EN |
++					AP1302_SYS_START_STALL_MODE_DISABLED, &ret);
++			if (ret < 0)
++				return ret;
+ 
+-		msleep(200);
++			msleep(200);
+ 
+-		ap1302_write(ap1302, AP1302_ADV_IRQ_SYS_INTE,
+-			     AP1302_ADV_IRQ_SYS_INTE_SIPM |
+-			     AP1302_ADV_IRQ_SYS_INTE_SIPS_FIFO_WRITE, &ret);
+-		if (ret < 0)
+-			return ret;
++			ap1302_write(ap1302, AP1302_ADV_IRQ_SYS_INTE,
++				     AP1302_ADV_IRQ_SYS_INTE_SIPM |
++				     AP1302_ADV_IRQ_SYS_INTE_SIPS_FIFO_WRITE, &ret);
++			if (ret < 0)
++				return ret;
+ 
+-		ap1302->streaming = false;
+-		return 0;
+-	} else {
+-		ap1302->streaming = true;
+-		return ap1302_write(ap1302, AP1302_SYS_START,
+-				    AP1302_SYS_START_PLL_LOCK |
+-				    AP1302_SYS_START_STALL_STATUS |
+-				    AP1302_SYS_START_STALL_EN |
+-				    AP1302_SYS_START_STALL_MODE_DISABLED, NULL);
++			ap1302->streaming = false;
++			return 0;
++		} else {
++			ap1302->streaming = true;
++			return ap1302_write(ap1302, AP1302_SYS_START,
++					    AP1302_SYS_START_PLL_LOCK |
++					    AP1302_SYS_START_STALL_STATUS |
++					    AP1302_SYS_START_STALL_EN |
++					    AP1302_SYS_START_STALL_MODE_DISABLED, NULL);
++		}
+ 	}
+ }
+ static int ap1302_set_mipi_t3_clk(struct ap1302_device *ap1302)
+@@ -2524,95 +2642,167 @@ static int ap1302_load_firmware(struct ap1302_device *ap1302)
+ 	unsigned int checksum;
+ 	int cnt, val;
+ 	int ret;
++	unsigned long clock_freq, clock_fp_mhz;
++	unsigned int value;
++
+ 	fw_hdr = (const struct ap1302_firmware_header *)ap1302->fw->data;
+ 	fw_data = (u8 *)&fw_hdr[1];
+ 	fw_size = ap1302->fw->size - sizeof(*fw_hdr);
+ 
+-	/*
+-	 * Load the PLL initialization settings, set the bootdata stage to 2 to
+-	 * apply the basic_init_hp settings, and wait 1ms for the PLL to lock.
+-	 */
+-	ret = ap1302_write_fw_window(ap1302, fw_data, fw_hdr->pll_init_size,
+-				     &win_pos);
+-	if (ret)
+-		return ret;
++	/* AR0830 supports firmware version 433 so changing load firmware method for it */
++        if (!strcmp(ap1302->sensor_info->model, AR0830_MODEL)) {
++                dev_info(ap1302->dev, "AR0830 Model Selected \n");
+ 
+-	ret = ap1302_write(ap1302, AP1302_BOOTDATA_STAGE, 0x0002, NULL);
+-	if (ret)
+-		return ret;
++                /* Set System Frequency to 48MHz */
++                ret = ap1302_write(ap1302,AP1302_SYSTEM_FREQ_IN,
++                                0x00300000,NULL);
++                if (ret)
++                        return ret;
+ 
+-	/* see if PLL locks */
+-	for (cnt = 0 ; !ret && (cnt < 10) ; cnt++) {
+-		msleep(2);
+-		ret = ap1302_read(ap1302, AP1302_SYS_START, &val);
+-		if ((val & AP1302_SYS_START_PLL_LOCK))
+-			break;
+-	}
++                /* Define target MIPI data rate in Mbps per lane */
++                #define AP1302_HINF_MIPI_FREQ   448000000
+ 
+-	usleep_range(1000, 2000);
++                #define HZ_TO_S15_16_MHZ(hz) \
++                (s32)div_s64( ((s64)hz)<<16, 1000000)
+ 
+-	/* Load the rest of the bootdata content and verify the CRC. */
+-	ret = ap1302_write_fw_window(ap1302, fw_data + fw_hdr->pll_init_size,
+-				     fw_size - fw_hdr->pll_init_size, &win_pos);
+-	if (ret)
+-		return ret;
++                clock_freq = AP1302_HINF_MIPI_FREQ;
++                clock_fp_mhz = HZ_TO_S15_16_MHZ(clock_freq);
++                dev_info(ap1302->dev,"AP1302 MIPI frequency %ld hz (FP 0x%08x)\n",clock_freq,clock_fp_mhz);
+ 
+-	usleep_range(10000, 20000);
++                /* Set the target MIPI data rate to 448Mbps per lane */
++                ret = ap1302_write(ap1302, AP1302_HINF_MIPI_FREQ_TGT,
++                                clock_fp_mhz, NULL);
+ 
+-	/* Adjust Host interface MIPI rate to use 4 data lane
+-	 * For AR0430 -> 448Mbps
+-	 * For ARX3A0 -> 896Mbps */
+-	if (!strcmp(ap1302->sensor_info->model, AR0430_MODEL)) {
+-		dev_info(ap1302->dev, "AR0430 Model Selected \n");
+-		ap1302_write(ap1302, AP1302_PREVIEW_DIV_HINF_MIPI, 0x00030002, NULL);
+-	}
++                /* Load bootdata, pll_init_size not needed for firmware 429 and later */
++                ret = ap1302_write_fw_window(ap1302, fw_data,
++                                             fw_size, &win_pos);
++                if (ret)
++                        return ret;
+ 
+-	/* PIPE_DIV = 5
+-	 * PIPE FREQ = 112 MHZ (564 from PLL0 /5) */
+-	ap1302_write(ap1302, AP1302_PREVIEW_DIV_IPIPE, 0x00010008, NULL);
++                msleep(40);
+ 
+-	if (!strcmp(ap1302->sensor_info->model, AR1335_MODEL)) {
+-		/* Set Actuator absolute milisecond time to 5ms */
+-		ret = ap1302_write(ap1302, ACT_ABS_MTIME, 0x00001388, NULL);
+-		if(ret)
++                /*
++                 * Write 0xffff to the bootdata_stage register to indicate to the
++                 * AP1302 that the whole bootdata content has been loaded.
++                */
++                ret = ap1302_write(ap1302, AP1302_BOOTDATA_STAGE, 0xffff, NULL);
++                if (ret)
+ 			return ret;
+-		/* Initialise Actuator controls */
+-		ret = ap1302_write(ap1302, ACT_CTRL_0, 0x00004C00, NULL);
+-		if(ret)
++
++                msleep(10);
++
++                /*
++                 * Wait for AP1302_BOOTDATA_STAGE to become 0xFFFF
++                */
++                ret = ap1302_poll_timeout(ap1302, AP1302_BOOTDATA_STAGE,
++                                value,value==0xFFFF, 10000, 5000000);
++                if (ret < 0)
++                {
++                        dev_err(ap1302->dev,
++                                 "AP1302_BOOTDATA_STAGE not 0xFFFF : %04X (POLL %d)\n",value,ret);
++                        return ret;
++                }
++
++                /* Print errors. */
++                ret = ap1302_read(ap1302, AP1302_ERROR, &value);
++                if (ret < 0)
++                        return ret;
++
++                if(value) {
++                        dev_warn(ap1302->dev,
++                                "Error Reg : %04X\n",value);
++                        return -EAGAIN;
++                }
++        }
++        else {
++		/* AR0430, ARX3A0 and AR1335 support firmware version older that 429
++		so it supports legacy firmware loading method */
++		/*
++		* Load the PLL initialization settings, set the bootdata stage to 2 to
++		* apply the basic_init_hp settings, and wait 1ms for the PLL to lock.
++		*/
++		ret = ap1302_write_fw_window(ap1302, fw_data, fw_hdr->pll_init_size,
++					     &win_pos);
++		if (ret)
+ 			return ret;
+-		ret = ap1302_write(ap1302, ACT_CTRL_1, 0x00000110, NULL);
+-		if(ret)
++
++		ret = ap1302_write(ap1302, AP1302_BOOTDATA_STAGE, 0x0002, NULL);
++		if (ret)
+ 			return ret;
+-	}
+ 
+-	/* Check again if PLL is locked aftaer adjusting Host interface MIPI data rate of AP1302 */
+-	for (cnt = 0 ; !ret && (cnt < 10) ; cnt++) {
+-		msleep(2);
+-		ret = ap1302_read(ap1302, AP1302_SYS_START, &val);
+-		if ((val & AP1302_SYS_START_PLL_LOCK))
+-			break;
+-	}
++		/* see if PLL locks */
++		for (cnt = 0 ; !ret && (cnt < 10) ; cnt++) {
++			msleep(2);
++			ret = ap1302_read(ap1302, AP1302_SYS_START, &val);
++			if ((val & AP1302_SYS_START_PLL_LOCK))
++				break;
++		}
+ 
+-	/*
+-	 * Write 0xffff to the bootdata_stage register to indicate to the
+-	 * AP1302 that the whole bootdata content has been loaded.
+-	 */
+-	ret = ap1302_write(ap1302, AP1302_BOOTDATA_STAGE, 0xffff, NULL);
+-	if (ret)
+-		return ret;
++		usleep_range(1000, 2000);
++
++		/* Load the rest of the bootdata content and verify the CRC. */
++		ret = ap1302_write_fw_window(ap1302, fw_data + fw_hdr->pll_init_size,
++					     fw_size - fw_hdr->pll_init_size, &win_pos);
++		if (ret)
++			return ret;
++
++		usleep_range(10000, 20000);
++
++		/* Adjust Host interface MIPI rate to use 4 data lane
++		 * For AR0430 -> 448Mbps
++		 * For ARX3A0 -> 896Mbps */
++		if (!strcmp(ap1302->sensor_info->model, AR0430_MODEL)) {
++			dev_info(ap1302->dev, "AR0430 Model Selected \n");
++			ap1302_write(ap1302, AP1302_PREVIEW_DIV_HINF_MIPI, 0x00030002, NULL);
++		}
+ 
+-	usleep_range(20000, 40000);
+-	ret = ap1302_read(ap1302, AP1302_SIP_CHECKSUM, &checksum);
+-	if (!ret) {
+-		if (checksum != fw_hdr->checksum) {
+-			dev_warn(ap1302->dev,
+-				 "checksum mismatch: expected 0x%04x, got 0x%04x\n",
+-				 fw_hdr->checksum, checksum);
+-			ret = -EAGAIN;
++		/* PIPE_DIV = 5
++		 * PIPE FREQ = 112 MHZ (564 from PLL0 /5) */
++		ap1302_write(ap1302, AP1302_PREVIEW_DIV_IPIPE, 0x00010008, NULL);
++
++		if (!strcmp(ap1302->sensor_info->model, AR1335_MODEL)) {
++			/* Set Actuator absolute milisecond time to 5ms */
++			ret = ap1302_write(ap1302, ACT_ABS_MTIME, 0x00001388, NULL);
++			if(ret)
++				return ret;
++			/* Initialise Actuator controls */
++			ret = ap1302_write(ap1302, ACT_CTRL_0, 0x00004C00, NULL);
++			if(ret)
++				return ret;
++			ret = ap1302_write(ap1302, ACT_CTRL_1, 0x00000110, NULL);
++			if(ret)
++				return ret;
++		}
++
++		/* Check again if PLL is locked aftaer adjusting Host interface MIPI data rate of AP1302 */
++		for (cnt = 0 ; !ret && (cnt < 10) ; cnt++) {
++			msleep(2);
++			ret = ap1302_read(ap1302, AP1302_SYS_START, &val);
++			if ((val & AP1302_SYS_START_PLL_LOCK))
++				break;
+ 		}
++
++		/*
++		 * Write 0xffff to the bootdata_stage register to indicate to the
++		 * AP1302 that the whole bootdata content has been loaded.
++		 */
++		ret = ap1302_write(ap1302, AP1302_BOOTDATA_STAGE, 0xffff, NULL);
++		if (ret)
++			return ret;
++
++		usleep_range(20000, 40000);
++		ret = ap1302_read(ap1302, AP1302_SIP_CHECKSUM, &checksum);
++		if (!ret) {
++			if (checksum != fw_hdr->checksum) {
++				dev_warn(ap1302->dev,
++					 "checksum mismatch: expected 0x%04x, got 0x%04x\n",
++					fw_hdr->checksum, checksum);
++				ret = -EAGAIN;
++			}
++		}
++		if (ret)
++			return ret;
+ 	}
+-	if (ret)
+-		return ret;
+ 
+ 	/* The AP1302 starts outputting frames right after boot, stop it. */
+ 	ret = ap1302_stall(ap1302, true);
+-- 
+2.17.1
+
